@@ -1,16 +1,8 @@
 "use client";
 
-
-import useSWR from 'swr';
-import { fetcher } from '@/app/fetcher';
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient } from "@/app/components/ReactQueryProvider"; 
-import axios from 'axios'
-import axiosInstance from "../../../../server/instance_axios";
-
-
-
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import useSWR from "swr";
+import { fetcher } from "@/app/fetcher";
 import {
   Button,
   Modal,
@@ -18,385 +10,488 @@ import {
   DatePicker,
   Select,
   Form,
+  Checkbox,
+  Divider,
   FormProps,
 } from "antd";
-import { RightOutlined, LeftOutlined, PlusOutlined } from "@ant-design/icons";
+
 import dayjs from "dayjs";
 
-interface CalendarEventsModel {
-  date: string;
-  event: string;
-  event_type: string;
-  description: string;
-}
-
-type FieldType = {
-    date: string;
-    event: string;
-    event_type: string;
-    description?: string;
-  };
+const { Option } = Select;
 
 export default function EmployeePage() {
+  // Tab state: "employee" or "add"
+  const [form] = Form.useForm();
+  const [activeTab, setActiveTab] = useState<
+    "employee" | "add" | "department_and_position" | "shift" | "incentive"
+  >("employee");
 
-  const { data: user } = useSWR('/auth/userv2/me', fetcher);
-  
- 
+  // Fetch employee data from backend
+  const { data, error, isLoading } = useSWR("/employee/name/", fetcher);
+
+  // Example Add Employee form handler (implement as needed)
+  const onAddEmployee = (values: any) => {
+    // TODO: Call backend to add employee
+    console.log(values);
+  };
 
   return (
-   <div className="p-4">
-          <ul className="flex w-max border-b border-gray-300 space-x-4 overflow-hidden">
-              <li id="homeTab"
-                  className="tab text-white font-semibold bg-blue-600 text-center text-[15px] py-2.5 px-6 rounded-tl-2xl rounded-tr-2xl cursor-pointer">
-                  Employee</li>
-              <li id="settingTab"
-                  className="tab text-slate-600 font-semibold bg-gray-200 text-center text-[15px] py-2.5 px-6 rounded-tl-2xl rounded-tr-2xl cursor-pointer">
-                  Add Employee</li>
-          </ul>
+    <div className="p-4">
+      {/* Tabs */}
+      <ul className="flex w-max border-b border-gray-300 space-x-4 overflow-hidden">
+        <li
+          id="homeTab"
+          className={`tab text-center text-[15px] py-2.5 px-6 rounded-tl-2xl rounded-tr-2xl cursor-pointer font-semibold ${
+            activeTab === "employee"
+              ? "text-white bg-blue-600"
+              : "text-slate-600 bg-gray-200"
+          }`}
+          onClick={() => setActiveTab("employee")}
+        >
+          Employee
+        </li>
+        <li
+          id="settingTab"
+          className={`tab text-center text-[15px] py-2.5 px-6 rounded-tl-2xl rounded-tr-2xl cursor-pointer font-semibold ${
+            activeTab === "add"
+              ? "text-white bg-blue-600"
+              : "text-slate-600 bg-gray-200"
+          }`}
+          onClick={() => setActiveTab("add")}
+        >
+          Add Employee
+        </li>
+        <li
+          id="settingTab"
+          className={`tab text-center text-[15px] py-2.5 px-6 rounded-tl-2xl rounded-tr-2xl cursor-pointer font-semibold ${
+            activeTab === "department_and_position"
+              ? "text-white bg-blue-600"
+              : "text-slate-600 bg-gray-200"
+          }`}
+          onClick={() => setActiveTab("department_and_position")}
+        >
+          Department / Position
+        </li>
 
-          <div id="homeContent" className="tab-content mx-8 mt-8">
-            <h2
-              className="bg-blue-600 flex font-medium text-l items-center justify-center ml-0 mb-5"
-              style={{ height: 50, width: 200, borderRadius: 10, color: "white" }}
-            >
-              List of Employees
-            </h2>
-            <div className="overflow-x-auto shadow-md">
-                <table className="w-full bg-white ">
-                    <thead className="bg-gray-800 whitespace-nowrap">
-                    <tr>
-                        <th className="p-4 text-left text-sm font-medium text-white">
-                        Employee ID
-                        </th>
-                        <th className="p-4 text-left text-sm font-medium text-white">
-                        Name
-                        </th>
-                        <th className="p-4 text-left text-sm font-medium text-white">
-                        Email
-                        </th>
-                        <th className="p-4 text-left text-sm font-medium text-white">
-                        Department
-                        </th>
-                        <th className="p-4 text-left text-sm font-medium text-white">
-                        Role
-                        </th>
-                        <th className="p-4 text-left text-sm font-medium text-white">
-                        Status
-                        </th>
-                        <th className="p-4 text-left text-sm font-medium text-white">
-                        Actions
-                        </th>
-                    </tr>
-                    </thead>
+        <li
+          id="settingTab"
+          className={`tab text-center text-[15px] py-2.5 px-6 rounded-tl-2xl rounded-tr-2xl cursor-pointer font-semibold ${
+            activeTab === "shift"
+              ? "text-white bg-blue-600"
+              : "text-slate-600 bg-gray-200"
+          }`}
+          onClick={() => setActiveTab("shift")}
+        >
+          Shift
+        </li>
 
-                    <tbody className="whitespace-nowrap">
+        <li
+          id="settingTab"
+          className={`tab text-center text-[15px] py-2.5 px-6 rounded-tl-2xl rounded-tr-2xl cursor-pointer font-semibold ${
+            activeTab === "incentive"
+              ? "text-white bg-blue-600"
+              : "text-slate-600 bg-gray-200"
+          }`}
+          onClick={() => setActiveTab("incentive")}
+        >
+          Incentive
+        </li>
+      </ul>
 
-                    <tr className="even:bg-blue-50">
-                        <td className="p-4 text-[15px] text-slate-900 font-medium">
-                        2025001
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-900 font-medium">
-                        John Doe
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-600 font-medium">
-                        john@example.com
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-600 font-medium">
-                        Research and Development
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-600 font-medium">
-                        Back-end Developer
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-600 font-medium">
-                          <h3 className="bg-green-600 flex items-center justify-center" 
-                            style= {{height:30, width:110, borderRadius: 20, color: "white"}}>
-                            Regular               
-                          </h3>
-                        </td>
-                        
-                        
-
-                        <td className="p-4">
+      {/* Employee List Tab */}
+      {activeTab === "employee" && (
+        <div id="homeContent" className="tab-content mx-8 mt-8">
+          <h2
+            className="bg-blue-600 flex font-medium text-l items-center justify-center ml-0 mb-5"
+            style={{ height: 50, width: 200, borderRadius: 10, color: "white" }}
+          >
+            List of Employees
+          </h2>
+          <div className="overflow-x-auto shadow-md">
+            <table className="w-full bg-white">
+              <thead className="bg-gray-800 whitespace-nowrap">
+                <tr>
+                  <th className="p-4 text-left text-sm font-medium text-white">
+                    Employee ID
+                  </th>
+                  <th className="p-4 text-left text-sm font-medium text-white">
+                    Name
+                  </th>
+                  <th className="p-4 text-left text-sm font-medium text-white">
+                    Email
+                  </th>
+                  <th className="p-4 text-left text-sm font-medium text-white">
+                    Department
+                  </th>
+                  <th className="p-4 text-left text-sm font-medium text-white">
+                    Role
+                  </th>
+                  <th className="p-4 text-left text-sm font-medium text-white">
+                    Status
+                  </th>
+                  <th className="p-4 text-left text-sm font-medium text-white">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="whitespace-nowrap">
+                {isLoading && (
+                  <tr>
+                    <td colSpan={7} className="p-4 text-center">
+                      Loading...
+                    </td>
+                  </tr>
+                )}
+                {error && (
+                  <tr>
+                    <td colSpan={7} className="p-4 text-center text-red-500">
+                      Failed to load employees
+                    </td>
+                  </tr>
+                )}
+                {Array.isArray(data) && data.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="p-4 text-center text-slate-500">
+                      No employees found.
+                    </td>
+                  </tr>
+                )}
+                {Array.isArray(data) &&
+                  data.map((emp: any) => (
+                    <tr key={emp.id} className="even:bg-blue-50">
+                      <td className="p-4 text-[15px] text-slate-900 font-medium">
+                        {emp.employee_id}
+                      </td>
+                      <td className="p-4 text-[15px] text-slate-900 font-medium">
+                        {emp.name}
+                      </td>
+                      <td className="p-4 text-[15px] text-slate-600 font-medium">
+                        {emp.email}
+                      </td>
+                      <td className="p-4 text-[15px] text-slate-600 font-medium">
+                        {emp.department}
+                      </td>
+                      <td className="p-4 text-[15px] text-slate-600 font-medium">
+                        {emp.position}
+                      </td>
+                      <td className="p-4 text-[15px] text-slate-600 font-medium">
+                        <h3
+                          className="bg-green-600 flex items-center justify-center"
+                          style={{
+                            height: 30,
+                            width: 110,
+                            borderRadius: 20,
+                            color: "white",
+                          }}
+                        >
+                          {emp.status || "Regular"}
+                        </h3>
+                      </td>
+                      <td className="p-4">
+                        {/* Actions (edit/delete) */}
                         <div className="flex items-center">
-                            <button className="mr-3 cursor-pointer" title="Edit">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 fill-blue-500 hover:fill-blue-700"
-                                viewBox="0 0 348.882 348.882">
-                                <path
-                                d="m333.988 11.758-.42-.383A43.363 43.363 0 0 0 304.258 0a43.579 43.579 0 0 0-32.104 14.153L116.803 184.231a14.993 14.993 0 0 0-3.154 5.37l-18.267 54.762c-2.112 6.331-1.052 13.333 2.835 18.729 3.918 5.438 10.23 8.685 16.886 8.685h.001c2.879 0 5.693-.592 8.362-1.76l52.89-23.138a14.985 14.985 0 0 0 5.063-3.626L336.771 73.176c16.166-17.697 14.919-45.247-2.783-61.418zM130.381 234.247l10.719-32.134.904-.99 20.316 18.556-.904.99-31.035 13.578zm184.24-181.304L182.553 197.53l-20.316-18.556L294.305 34.386c2.583-2.828 6.118-4.386 9.954-4.386 3.365 0 6.588 1.252 9.082 3.53l.419.383c5.484 5.009 5.87 13.546.861 19.03z"
-                                data-original="#000000" />
-                                <path
-                                d="M303.85 138.388c-8.284 0-15 6.716-15 15v127.347c0 21.034-17.113 38.147-38.147 38.147H68.904c-21.035 0-38.147-17.113-38.147-38.147V100.413c0-21.034 17.113-38.147 38.147-38.147h131.587c8.284 0 15-6.716 15-15s-6.716-15-15-15H68.904C31.327 32.266.757 62.837.757 100.413v180.321c0 37.576 30.571 68.147 68.147 68.147h181.798c37.576 0 68.147-30.571 68.147-68.147V153.388c.001-8.284-6.715-15-14.999-15z"
-                                data-original="#000000" />
-                            </svg>
-                            </button>
-                            <button title="Delete" className="cursor-pointer">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 fill-red-500 hover:fill-red-700" viewBox="0 0 24 24">
-                                <path
-                                d="M19 7a1 1 0 0 0-1 1v11.191A1.92 1.92 0 0 1 15.99 21H8.01A1.92 1.92 0 0 1 6 19.191V8a1 1 0 0 0-2 0v11.191A3.918 3.918 0 0 0 8.01 23h7.98A3.918 3.918 0 0 0 20 19.191V8a1 1 0 0 0-1-1Zm1-3h-4V2a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v2H4a1 1 0 0 0 0 2h16a1 1 0 0 0 0-2ZM10 4V3h4v1Z"
-                                data-original="#000000" />
-                                <path d="M11 17v-7a1 1 0 0 0-2 0v7a1 1 0 0 0 2 0Zm4 0v-7a1 1 0 0 0-2 0v7a1 1 0 0 0 2 0Z"
-                                data-original="#000000" />
-                            </svg>
-                            </button>
+                          <button className="mr-3 cursor-pointer" title="Edit">
+                            {/* ...edit icon... */}
+                          </button>
+                          <button title="Delete" className="cursor-pointer">
+                            {/* ...delete icon... */}
+                          </button>
                         </div>
-                        </td>
+                      </td>
                     </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
-                    <tr className="even:bg-blue-50">
-                        <td className="p-4 text-[15px] text-slate-900 font-medium">
-                        2025002
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-900 font-medium">
-                        Jane Smith
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-600 font-medium">
-                        jane@example.com
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-600 font-medium">
-                        Accounting 
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-600 font-medium">
-                        Accounting Officer
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-600 font-medium">
-                          <h3 className="bg-green-600 flex items-center justify-center" 
-                            style= {{height:30, width:110, borderRadius: 20, color: "white"}}>
-                            Regular               
-                          </h3>
-                        </td>
-                        <td className="p-4">
-                        <div className="flex items-center">
-                            <button className="mr-3 cursor-pointer" title="Edit">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 fill-blue-500 hover:fill-blue-700"
-                                viewBox="0 0 348.882 348.882">
-                                <path
-                                d="m333.988 11.758-.42-.383A43.363 43.363 0 0 0 304.258 0a43.579 43.579 0 0 0-32.104 14.153L116.803 184.231a14.993 14.993 0 0 0-3.154 5.37l-18.267 54.762c-2.112 6.331-1.052 13.333 2.835 18.729 3.918 5.438 10.23 8.685 16.886 8.685h.001c2.879 0 5.693-.592 8.362-1.76l52.89-23.138a14.985 14.985 0 0 0 5.063-3.626L336.771 73.176c16.166-17.697 14.919-45.247-2.783-61.418zM130.381 234.247l10.719-32.134.904-.99 20.316 18.556-.904.99-31.035 13.578zm184.24-181.304L182.553 197.53l-20.316-18.556L294.305 34.386c2.583-2.828 6.118-4.386 9.954-4.386 3.365 0 6.588 1.252 9.082 3.53l.419.383c5.484 5.009 5.87 13.546.861 19.03z"
-                                data-original="#000000" />
-                                <path
-                                d="M303.85 138.388c-8.284 0-15 6.716-15 15v127.347c0 21.034-17.113 38.147-38.147 38.147H68.904c-21.035 0-38.147-17.113-38.147-38.147V100.413c0-21.034 17.113-38.147 38.147-38.147h131.587c8.284 0 15-6.716 15-15s-6.716-15-15-15H68.904C31.327 32.266.757 62.837.757 100.413v180.321c0 37.576 30.571 68.147 68.147 68.147h181.798c37.576 0 68.147-30.571 68.147-68.147V153.388c.001-8.284-6.715-15-14.999-15z"
-                                data-original="#000000" />
-                            </svg>
-                            </button>
-                            <button title="Delete" className="cursor-pointer">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 fill-red-500 hover:fill-red-700" viewBox="0 0 24 24">
-                                <path
-                                d="M19 7a1 1 0 0 0-1 1v11.191A1.92 1.92 0 0 1 15.99 21H8.01A1.92 1.92 0 0 1 6 19.191V8a1 1 0 0 0-2 0v11.191A3.918 3.918 0 0 0 8.01 23h7.98A3.918 3.918 0 0 0 20 19.191V8a1 1 0 0 0-1-1Zm1-3h-4V2a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v2H4a1 1 0 0 0 0 2h16a1 1 0 0 0 0-2ZM10 4V3h4v1Z"
-                                data-original="#000000" />
-                                <path d="M11 17v-7a1 1 0 0 0-2 0v7a1 1 0 0 0 2 0Zm4 0v-7a1 1 0 0 0-2 0v7a1 1 0 0 0 2 0Z"
-                                data-original="#000000" />
-                            </svg>
-                            </button>
-                        </div>
-                        </td>
-                    </tr>
+      {/* Add Employee Tab */}
+      {activeTab === "add" && (
+        <div id="settingContent" className="tab-content rounded-lg mt-6">
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={onAddEmployee}
+            className="w-auto mx-auto mt-10 rounded-lg p-6  rounded shadow-md"
+          >
+            <div className="flex flex-row gap-6">
+              <div className="flex flex-col rounded-lg p-4 bg-white ">
+                <h2 className="text-xl font-bold mb-4 mt-4 ml-4">
+                  Personal Information
+                </h2>
+                <div className="flex flex-row gap-4 ml-4">
+                  <Form.Item
+                    label="First Name"
+                    name="first_name"
+                    rules={[{ required: true }]}
+                  >
+                    <Input />
+                  </Form.Item>
 
-                    <tr className="even:bg-blue-50">
-                        <td className="p-4 text-[15px] text-slate-900 font-medium">
-                        2025003
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-900 font-medium">
-                        Alen Doe
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-600 font-medium">
-                        alen@example.com
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-600 font-medium">
-                        Engineering
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-600 font-medium">
-                        ECE
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-600 font-medium">
-                          <h3 className="bg-green-600 flex items-center justify-center" 
-                            style= {{height:30, width:110, borderRadius: 20, color: "white"}}>
-                            Regular               
-                          </h3>
-                        </td>
-                        <td className="p-4">
-                        <div className="flex items-center">
-                            <button className="mr-3 cursor-pointer" title="Edit">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 fill-blue-500 hover:fill-blue-700"
-                                viewBox="0 0 348.882 348.882">
-                                <path
-                                d="m333.988 11.758-.42-.383A43.363 43.363 0 0 0 304.258 0a43.579 43.579 0 0 0-32.104 14.153L116.803 184.231a14.993 14.993 0 0 0-3.154 5.37l-18.267 54.762c-2.112 6.331-1.052 13.333 2.835 18.729 3.918 5.438 10.23 8.685 16.886 8.685h.001c2.879 0 5.693-.592 8.362-1.76l52.89-23.138a14.985 14.985 0 0 0 5.063-3.626L336.771 73.176c16.166-17.697 14.919-45.247-2.783-61.418zM130.381 234.247l10.719-32.134.904-.99 20.316 18.556-.904.99-31.035 13.578zm184.24-181.304L182.553 197.53l-20.316-18.556L294.305 34.386c2.583-2.828 6.118-4.386 9.954-4.386 3.365 0 6.588 1.252 9.082 3.53l.419.383c5.484 5.009 5.87 13.546.861 19.03z"
-                                data-original="#000000" />
-                                <path
-                                d="M303.85 138.388c-8.284 0-15 6.716-15 15v127.347c0 21.034-17.113 38.147-38.147 38.147H68.904c-21.035 0-38.147-17.113-38.147-38.147V100.413c0-21.034 17.113-38.147 38.147-38.147h131.587c8.284 0 15-6.716 15-15s-6.716-15-15-15H68.904C31.327 32.266.757 62.837.757 100.413v180.321c0 37.576 30.571 68.147 68.147 68.147h181.798c37.576 0 68.147-30.571 68.147-68.147V153.388c.001-8.284-6.715-15-14.999-15z"
-                                data-original="#000000" />
-                            </svg>
-                            </button>
-                            <button title="Delete" className="cursor-pointer">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 fill-red-500 hover:fill-red-700" viewBox="0 0 24 24">
-                                <path
-                                d="M19 7a1 1 0 0 0-1 1v11.191A1.92 1.92 0 0 1 15.99 21H8.01A1.92 1.92 0 0 1 6 19.191V8a1 1 0 0 0-2 0v11.191A3.918 3.918 0 0 0 8.01 23h7.98A3.918 3.918 0 0 0 20 19.191V8a1 1 0 0 0-1-1Zm1-3h-4V2a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v2H4a1 1 0 0 0 0 2h16a1 1 0 0 0 0-2ZM10 4V3h4v1Z"
-                                data-original="#000000" />
-                                <path d="M11 17v-7a1 1 0 0 0-2 0v7a1 1 0 0 0 2 0Zm4 0v-7a1 1 0 0 0-2 0v7a1 1 0 0 0 2 0Z"
-                                data-original="#000000" />
-                            </svg>
-                            </button>
-                        </div>
-                        </td>
-                    </tr>
+                  <Form.Item
+                    label="Last Name"
+                    name="last_name"
+                    rules={[{ required: true }]}
+                  >
+                    <Input />
+                  </Form.Item>
 
-                    <tr className="even:bg-blue-50">
-                        <td className="p-4 text-[15px] text-slate-900 font-medium">
-                        2025001
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-900 font-medium">
-                        Kelwin mark
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-600 font-medium">
-                        kelwin@example.com
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-600 font-medium">
-                        Human Resource
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-600 font-medium">
-                        HR
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-600 font-medium">
-                          <h3 className="bg-green-600 flex items-center justify-center" 
-                            style= {{height:30, width:110, borderRadius: 20, color: "white"}}>
-                            Regular               
-                          </h3>
-                        </td>
-                        <td className="p-4">
-                        <div className="flex items-center">
-                            <button className="mr-3 cursor-pointer" title="Edit">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 fill-blue-500 hover:fill-blue-700"
-                                viewBox="0 0 348.882 348.882">
-                                <path
-                                d="m333.988 11.758-.42-.383A43.363 43.363 0 0 0 304.258 0a43.579 43.579 0 0 0-32.104 14.153L116.803 184.231a14.993 14.993 0 0 0-3.154 5.37l-18.267 54.762c-2.112 6.331-1.052 13.333 2.835 18.729 3.918 5.438 10.23 8.685 16.886 8.685h.001c2.879 0 5.693-.592 8.362-1.76l52.89-23.138a14.985 14.985 0 0 0 5.063-3.626L336.771 73.176c16.166-17.697 14.919-45.247-2.783-61.418zM130.381 234.247l10.719-32.134.904-.99 20.316 18.556-.904.99-31.035 13.578zm184.24-181.304L182.553 197.53l-20.316-18.556L294.305 34.386c2.583-2.828 6.118-4.386 9.954-4.386 3.365 0 6.588 1.252 9.082 3.53l.419.383c5.484 5.009 5.87 13.546.861 19.03z"
-                                data-original="#000000" />
-                                <path
-                                d="M303.85 138.388c-8.284 0-15 6.716-15 15v127.347c0 21.034-17.113 38.147-38.147 38.147H68.904c-21.035 0-38.147-17.113-38.147-38.147V100.413c0-21.034 17.113-38.147 38.147-38.147h131.587c8.284 0 15-6.716 15-15s-6.716-15-15-15H68.904C31.327 32.266.757 62.837.757 100.413v180.321c0 37.576 30.571 68.147 68.147 68.147h181.798c37.576 0 68.147-30.571 68.147-68.147V153.388c.001-8.284-6.715-15-14.999-15z"
-                                data-original="#000000" />
-                            </svg>
-                            </button>
-                            <button title="Delete" className="cursor-pointer">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 fill-red-500 hover:fill-red-700" viewBox="0 0 24 24">
-                                <path
-                                d="M19 7a1 1 0 0 0-1 1v11.191A1.92 1.92 0 0 1 15.99 21H8.01A1.92 1.92 0 0 1 6 19.191V8a1 1 0 0 0-2 0v11.191A3.918 3.918 0 0 0 8.01 23h7.98A3.918 3.918 0 0 0 20 19.191V8a1 1 0 0 0-1-1Zm1-3h-4V2a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v2H4a1 1 0 0 0 0 2h16a1 1 0 0 0 0-2ZM10 4V3h4v1Z"
-                                data-original="#000000" />
-                                <path d="M11 17v-7a1 1 0 0 0-2 0v7a1 1 0 0 0 2 0Zm4 0v-7a1 1 0 0 0-2 0v7a1 1 0 0 0 2 0Z"
-                                data-original="#000000" />
-                            </svg>
-                            </button>
-                        </div>
-                        </td>
-                    </tr>
+                  <Form.Item label="Middle Name" name="middle_name">
+                    <Input />
+                  </Form.Item>
 
-                    <tr className="even:bg-blue-50">
-                        <td className="p-4 text-[15px] text-slate-900 font-medium">
-                        2025004
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-900 font-medium">
-                        Dustin
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-600 font-medium">
-                        dustin@example.com
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-600 font-medium">
-                        Research and Development
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-600 font-medium">
-                        Front-end Developer
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-600 font-medium">
-                          <h3 className="bg-green-600 flex items-center justify-center" 
-                            style= {{height:30, width:110, borderRadius: 20, color: "white"}}>
-                            Regular               
-                          </h3>
-                        </td>
-                        <td className="p-4">
-                        <div className="flex items-center">
-                            <button className="mr-3 cursor-pointer" title="Edit">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 fill-blue-500 hover:fill-blue-700"
-                                viewBox="0 0 348.882 348.882">
-                                <path
-                                d="m333.988 11.758-.42-.383A43.363 43.363 0 0 0 304.258 0a43.579 43.579 0 0 0-32.104 14.153L116.803 184.231a14.993 14.993 0 0 0-3.154 5.37l-18.267 54.762c-2.112 6.331-1.052 13.333 2.835 18.729 3.918 5.438 10.23 8.685 16.886 8.685h.001c2.879 0 5.693-.592 8.362-1.76l52.89-23.138a14.985 14.985 0 0 0 5.063-3.626L336.771 73.176c16.166-17.697 14.919-45.247-2.783-61.418zM130.381 234.247l10.719-32.134.904-.99 20.316 18.556-.904.99-31.035 13.578zm184.24-181.304L182.553 197.53l-20.316-18.556L294.305 34.386c2.583-2.828 6.118-4.386 9.954-4.386 3.365 0 6.588 1.252 9.082 3.53l.419.383c5.484 5.009 5.87 13.546.861 19.03z"
-                                data-original="#000000" />
-                                <path
-                                d="M303.85 138.388c-8.284 0-15 6.716-15 15v127.347c0 21.034-17.113 38.147-38.147 38.147H68.904c-21.035 0-38.147-17.113-38.147-38.147V100.413c0-21.034 17.113-38.147 38.147-38.147h131.587c8.284 0 15-6.716 15-15s-6.716-15-15-15H68.904C31.327 32.266.757 62.837.757 100.413v180.321c0 37.576 30.571 68.147 68.147 68.147h181.798c37.576 0 68.147-30.571 68.147-68.147V153.388c.001-8.284-6.715-15-14.999-15z"
-                                data-original="#000000" />
-                            </svg>
-                            </button>
-                            <button title="Delete" className="cursor-pointer">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 fill-red-500 hover:fill-red-700" viewBox="0 0 24 24">
-                                <path
-                                d="M19 7a1 1 0 0 0-1 1v11.191A1.92 1.92 0 0 1 15.99 21H8.01A1.92 1.92 0 0 1 6 19.191V8a1 1 0 0 0-2 0v11.191A3.918 3.918 0 0 0 8.01 23h7.98A3.918 3.918 0 0 0 20 19.191V8a1 1 0 0 0-1-1Zm1-3h-4V2a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v2H4a1 1 0 0 0 0 2h16a1 1 0 0 0 0-2ZM10 4V3h4v1Z"
-                                data-original="#000000" />
-                                <path d="M11 17v-7a1 1 0 0 0-2 0v7a1 1 0 0 0 2 0Zm4 0v-7a1 1 0 0 0-2 0v7a1 1 0 0 0 2 0Z"
-                                data-original="#000000" />
-                            </svg>
-                            </button>
-                        </div>
-                        </td>
-                    </tr>
+                  <Form.Item label="Suffix" name="suffix">
+                    <Select placeholder="Suffix">
+                      <Option value="Single">Jr.</Option>
+                      <Option value="Married">Sr.</Option>
+                      <Option value="Widowed">II</Option>
+                      <Option value="Widowed">III</Option>
+                      <Option value="Widowed">IV</Option>
+                    </Select>
+                  </Form.Item>
+                </div>
 
-                    <tr className="even:bg-blue-50">
-                        <td className="p-4 text-[15px] text-slate-900 font-medium">
-                        2025005
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-900 font-medium">
-                        Jams david
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-600 font-medium">
-                        jams@example.com
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-600 font-medium">
-                        Research and Development
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-600 font-medium">
-                        Software Engineer
-                        </td>
-                        <td className="p-4 text-[15px] text-slate-600 font-medium">
-                          <h3 className="bg-green-600 flex items-center justify-center" 
-                            style= {{height:30, width:110, borderRadius: 20, color: "white"}}>
-                            Regular               
-                          </h3>
-                        </td>
-                        <td className="p-4">
-                        <div className="flex items-center">
-                            <button className="mr-3 cursor-pointer" title="Edit">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 fill-blue-500 hover:fill-blue-700"
-                                viewBox="0 0 348.882 348.882">
-                                <path
-                                d="m333.988 11.758-.42-.383A43.363 43.363 0 0 0 304.258 0a43.579 43.579 0 0 0-32.104 14.153L116.803 184.231a14.993 14.993 0 0 0-3.154 5.37l-18.267 54.762c-2.112 6.331-1.052 13.333 2.835 18.729 3.918 5.438 10.23 8.685 16.886 8.685h.001c2.879 0 5.693-.592 8.362-1.76l52.89-23.138a14.985 14.985 0 0 0 5.063-3.626L336.771 73.176c16.166-17.697 14.919-45.247-2.783-61.418zM130.381 234.247l10.719-32.134.904-.99 20.316 18.556-.904.99-31.035 13.578zm184.24-181.304L182.553 197.53l-20.316-18.556L294.305 34.386c2.583-2.828 6.118-4.386 9.954-4.386 3.365 0 6.588 1.252 9.082 3.53l.419.383c5.484 5.009 5.87 13.546.861 19.03z"
-                                data-original="#000000" />
-                                <path
-                                d="M303.85 138.388c-8.284 0-15 6.716-15 15v127.347c0 21.034-17.113 38.147-38.147 38.147H68.904c-21.035 0-38.147-17.113-38.147-38.147V100.413c0-21.034 17.113-38.147 38.147-38.147h131.587c8.284 0 15-6.716 15-15s-6.716-15-15-15H68.904C31.327 32.266.757 62.837.757 100.413v180.321c0 37.576 30.571 68.147 68.147 68.147h181.798c37.576 0 68.147-30.571 68.147-68.147V153.388c.001-8.284-6.715-15-14.999-15z"
-                                data-original="#000000" />
-                            </svg>
-                            </button>
-                            <button title="Delete" className="cursor-pointer">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 fill-red-500 hover:fill-red-700" viewBox="0 0 24 24">
-                                <path
-                                d="M19 7a1 1 0 0 0-1 1v11.191A1.92 1.92 0 0 1 15.99 21H8.01A1.92 1.92 0 0 1 6 19.191V8a1 1 0 0 0-2 0v11.191A3.918 3.918 0 0 0 8.01 23h7.98A3.918 3.918 0 0 0 20 19.191V8a1 1 0 0 0-1-1Zm1-3h-4V2a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v2H4a1 1 0 0 0 0 2h16a1 1 0 0 0 0-2ZM10 4V3h4v1Z"
-                                data-original="#000000" />
-                                <path d="M11 17v-7a1 1 0 0 0-2 0v7a1 1 0 0 0 2 0Zm4 0v-7a1 1 0 0 0-2 0v7a1 1 0 0 0 2 0Z"
-                                data-original="#000000" />
-                            </svg>
-                            </button>
-                        </div>
-                        </td>
-                    </tr>
+                <div className="flex flex-row gap-4 ml-4">
+                  <Form.Item
+                    label="Employee ID"
+                    name="employee_id"
+                    rules={[{ required: true }]}
+                  >
+                    <Input />
+                  </Form.Item>
 
-                    </tbody>
-                </table>
+                  <Form.Item
+                    label="Email"
+                    name="email"
+                    rules={[{ required: true }]}
+                    className="w-69"
+                  >
+                    <Input />
+                  </Form.Item>
+
+                  <Form.Item
+                    label="Phone Number"
+                    name="phone_no"
+                    rules={[{ required: true }]}
+                  >
+                    <Input />
+                  </Form.Item>
+                </div>
+
+                <div className="flex flex-col ml-4">
+                  <div className="flex flex-row gap-4">
+                    <Form.Item
+                      label="Date of Birth"
+                      name="date_of_birth"
+                      rules={[{ required: true }]}
+                    >
+                      <DatePicker className="w-full" />
+                    </Form.Item>
+
+                    <Form.Item
+                      label="Gender"
+                      name="gender"
+                      rules={[{ required: true }]}
+                    >
+                      <Select placeholder="Select gender">
+                        <Option value="Male">Male</Option>
+                        <Option value="Female">Female</Option>
+                        <Option value="Other">LGBTQ+</Option>
+                      </Select>
+                    </Form.Item>
+
+                    <Form.Item
+                      label="Civil Status"
+                      name="civil_status"
+                      rules={[{ required: true }]}
+                    >
+                      <Select placeholder="Select civil status">
+                        <Option value="Single">Single</Option>
+                        <Option value="Married">Married</Option>
+                        <Option value="Widowed">Widowed</Option>
+                      </Select>
+                    </Form.Item>
+                  </div>
+                  <Form.Item
+                    label="Address"
+                    name="address"
+                    rules={[{ required: true }]}
+                    className="w-md"
+                  >
+                    <Input.TextArea />
+                  </Form.Item>
+                </div>
+              </div>
+
+              <div className="flex flex-col rounded-lg p-4 bg-white ">
+                <h2 className="text-xl font-bold mb-4 mt-4 ml-4">
+                  Government IDs
+                </h2>
+                <div className="flex flex-col">
+                  <Form.Item
+                    label="SSS"
+                    name="sss"
+                    rules={[{ required: true }]}
+                  >
+                    <Input />
+                  </Form.Item>
+
+                  <Form.Item
+                    label="Pag-IBIG"
+                    name="pag_ibig"
+                    rules={[{ required: true }]}
+                  >
+                    <Input />
+                  </Form.Item>
+
+                  <Form.Item
+                    label="PhilHealth"
+                    name="philhealth"
+                    rules={[{ required: true }]}
+                  >
+                    <Input />
+                  </Form.Item>
+
+                  <Form.Item
+                    label="TIN"
+                    name="tin"
+                    rules={[{ required: true }]}
+                  >
+                    <Input />
+                  </Form.Item>
+                </div>
+              </div>
             </div>
 
-          </div>
+            <div className="flex flex-col p-4 bg-white">
+              <h2 className="text-xl font-bold mt-4 mb-4">Work Information</h2>
+              <div className="flex flex-row gap-6">
+                <div className="flex flex-col ml-4">
+                  <div className="flex flex-row gap-4">
+                    <Form.Item
+                      label="Start Date"
+                      name="start_date"
+                      rules={[{ required: true }]}
+                    >
+                      <DatePicker className="w-full" />
+                    </Form.Item>
 
-          <div id="settingContent" className="tab-content max-w-2xl hidden mt-8">
-              <h4 className="text-base font-semibold text-slate-600">Setting</h4>
-              <p className="text-sm text-slate-600 mt-2 leading-relaxed">Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                  Sed auctor auctor arcu, at fermentum dui.
-                  Maecenas vestibulum a turpis in lacinia.
-                  Proin aliquam turpis at erat venenatis malesuada.
-                  Sed semper, justo vitae consequat fermentum, felis diam posuere ante, sed fermentum quam justo in dui.
-              </p>
-          </div>
-      </div>
+                    <Form.Item
+                      label="Salary"
+                      name="salary"
+                      rules={[{ required: true }]}
+                    >
+                      <Input />
+                    </Form.Item>
+
+                    <Form.Item
+                      label="Shift"
+                      name="shift"
+                      rules={[{ required: true }]}
+                    >
+                      <Select placeholder="Select shift">
+                        {/* Populate dynamically from API */}
+                        <Option value="1">Morning Shift</Option>
+                        <Option value="2">Night Shift</Option>
+                      </Select>
+                    </Form.Item>
+                  </div>
+
+                  <div className="flex flex-row gap-4">
+                    <Form.Item
+                      label="Department"
+                      name="department"
+                      rules={[{ required: true }]}
+                    >
+                      <Select placeholder="Select department">
+                        {/* Populate dynamically from API */}
+                        <Option value="1">HR</Option>
+                        <Option value="2">Engineering</Option>
+                      </Select>
+                    </Form.Item>
+
+                    <Form.Item
+                      label="Position"
+                      name="position"
+                      rules={[{ required: true }]}
+                    >
+                      <Select placeholder="Select position">
+                        {/* Populate dynamically from API */}
+                        <Option value="1">Manager</Option>
+                        <Option value="2">Developer</Option>
+                      </Select>
+                    </Form.Item>
+
+                    <Form.Item
+                      label="Career Status"
+                      name="career_status"
+                      rules={[{ required: true }]}
+                    >
+                      <Select placeholder="Select status">
+                        <Option value="Probationary">Probationay</Option>
+                        <Option value="Regular">Regular</Option>
+                        <Option value="Intern">Intern</Option>
+                        <Option value="Traine">Traine</Option>
+                      </Select>
+                    </Form.Item>
+                  </div>
+                </div>
+                   <Form.Item label="Incentives" name="incentives">
+                    <Checkbox.Group
+                      options={[
+                        { label: "Bonus", value: "1" },
+                        { label: "Health Allowance", value: "2" },
+                      ]}
+                    />
+                  </Form.Item>
+
+                  <Form.Item label="Work Days" name="work_days">
+                    <Checkbox.Group
+                      options={[
+                        { label: "Monday", value: "mon" },
+                        { label: "Tuesday", value: "tue" },
+                        { label: "Wednesday", value: "wed" },
+                        { label: "Thursday", value: "thu" },
+                        { label: "Friday", value: "fri" },
+                        { label: "Saturday", value: "sat" },
+                        { label: "Sunday", value: "sun" },
+                      ]}
+                    />
+                  </Form.Item>
+
+                  <Form.Item label="On Call Days" name="on_call_days">
+                    <Checkbox.Group
+                      options={[
+                        { label: "Monday", value: "mon" },
+                        { label: "Tuesday", value: "tue" },
+                        { label: "Wednesday", value: "wed" },
+                        { label: "Thursday", value: "thu" },
+                        { label: "Friday", value: "fri" },
+                        { label: "Saturday", value: "sat" },
+                        { label: "Sunday", value: "sun" },
+                      ]}
+                    />
+                  </Form.Item>
+              </div>
+            </div>
+
+            <Form.Item>
+              <Button type="primary" htmlType="submit">
+                Save Employee
+              </Button>
+            </Form.Item>
+          </Form>
+        </div>
+      )}
+      {/* Add Department and Position Tab */}
+      {activeTab === "department_and_position" && (
+        <div>{/* Department & Position Form goes here */}</div>
+      )}
+      {/* Add Shift Tab */}
+      {activeTab === "shift" && <div>{/* Shift Form goes here */}</div>}
+      {/* Add incentive Tab */}
+      {activeTab === "incentive" && <div>{/* Incentive Form goes here */}</div>}
+    </div>
   );
 }

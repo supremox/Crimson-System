@@ -7,10 +7,10 @@ class CalendarEventListCreateView(generics.ListCreateAPIView):
     queryset = CalendarEvent.objects.all()
     serializer_class = CalendarEventSerializer
 
-    def create(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-
         if serializer.is_valid():
+            print(f"Data: {serializer.validated_data}")
             self.perform_create(serializer)
             return Response({
                 "message": "Calendar event created successfully.",

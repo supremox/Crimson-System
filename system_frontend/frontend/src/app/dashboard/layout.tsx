@@ -88,7 +88,7 @@ export default function Home({
 }: Readonly<{ children: React.ReactNode }>) {
   const router = useRouter();
   const { data: user } = useSWR('/auth/userv2/me', fetcher);
-  const { logout, removeTokens } = AuthActions();
+  const { logout} = AuthActions();
   const [collapsed, setCollapsed] = useState(false);
 
  
@@ -97,26 +97,12 @@ export default function Home({
     items: profileMenuItems,
     onClick: () =>
       logout()
-        .res(() => {
-          removeTokens();
+        .then(() => {
           router.push('/');
         })
         .catch(() => {
-          removeTokens();
           router.push('/');
-      }),
-   };
-  
-  const handleLogout = () => {
-    logout()
-      .res(() => {
-        removeTokens();
-        router.push('/');
-      })
-      .catch(() => {
-        removeTokens();
-        router.push('/');
-      });
+        }),
   };
 
   return (
@@ -158,19 +144,6 @@ export default function Home({
             <Content>
                 <AntdRegistry>{children}</AntdRegistry>
             </Content>
-          {/* <Content style={{ margin: '24px 16px', padding: 24, background: '#f0f2f5' }}>
-            <Card style={{ maxWidth: 500, margin: '0 auto' }}>
-              <Title level={3}>Hi, {user?.first_name}!</Title>
-              <Paragraph>Your account details:</Paragraph>
-              <ul style={{ marginBottom: 16 }}>
-                <li><strong>First_name:</strong> {user?.first_name}</li>
-                <li><strong>Email:</strong> {user?.email}</li>
-              </ul>
-              <Button type="primary" danger onClick={handleLogout}>
-                Disconnect
-              </Button>
-            </Card>
-          </Content> */}
         </Layout>
       </Layout>
     </AntdRegistry>

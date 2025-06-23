@@ -1,5 +1,6 @@
 import wretch from "wretch";
 import Cookies from "js-cookie";
+import axiosInstance from "../../../server/instance_axios"; 
 
 // Base API setup for making HTTP requests
 const api = wretch("http://localhost:8000").accept("application/json");
@@ -31,21 +32,20 @@ const getToken = (type: string) => {
 
 const removeTokens = () => {
     Cookies.remove("accessToken");
-    Cookies.remove("refereshToken");
+    Cookies.remove("refreshToken");
 };
 
+
 const login = (email: string, password: string) => {
-    return api.post({email: email, password}, "/api/token/");
+  return axiosInstance.post("/api/token/", { email, password });
 };
 
 const logout = () => {
-    const refereshToken = getToken("refresh");
-    return api.post({ refresh: refereshToken }, "/auth/logout/");
+  return axiosInstance.post("/auth/logout/");
 };
 
 const handleJWTRefresh = () => {
-    const refereshToken = getToken("refresh");
-    return api.post({ refresh: refereshToken }, "api/token/refresh/")
+   return axiosInstance.post("/api/token/refresh/", {}, { withCredentials: true });
 }
 
 
@@ -53,9 +53,6 @@ export const AuthActions = () => {
     return {
         login,
         logout,
-        storeToken,
-        getToken,
-        removeTokens,
         handleJWTRefresh,
     };
 };

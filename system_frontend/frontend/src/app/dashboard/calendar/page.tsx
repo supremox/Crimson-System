@@ -1,11 +1,8 @@
 "use client";
 
-import { getToken } from "../../../../server/getToken";
-import { revalidateResponse } from "../../../../server/revalidateResponse";
-
+import { AuthActions } from "@/app/auth/utils";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/app/components/ReactQueryProvider";  
-import axios from 'axios'
 import axiosInstance from "../../../../server/instance_axios";
 
 import { useEffect, useState } from "react";
@@ -22,17 +19,17 @@ import { RightOutlined, LeftOutlined, PlusOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 
 interface CalendarEventsModel {
-  date: string;
-  event: string;
+  event_date: string;
+  event_name: string;
   event_type: string;
-  description: string;
+  event_description: string;
 }
 
 type FieldType = {
-    date: string;
-    event: string;
+    event_date: string;
+    event_name: string;
     event_type: string;
-    description?: string;
+    event_description?: string;
   };
 
 export default function CalendarPage() {
@@ -52,10 +49,10 @@ export default function CalendarPage() {
   const [showModal, setShowModal] = useState(false);
   const [refetch, setRefetch] = useState(true);
   const [form, setForm] = useState({
-    name: "",
-    date: "",
-    description: "",
-    type: "",
+    event_name: "",
+    event_date: "",
+    event_description: "",
+    event_type: "",  
   });
 
   useEffect(() => {
@@ -72,7 +69,7 @@ export default function CalendarPage() {
   ];
 
   const handleTypeChange = (value: string) => {
-    setForm({ ...form, type: value });
+    setForm({ ...form, event_type: value });
   };
 
   const renderCalendar = (year: number, month: number) => {
@@ -126,13 +123,13 @@ export default function CalendarPage() {
   ) => {
     setForm({
       ...form,
-      date: date ? date.format("YYYY-MM-DD") : "",
+      event_date: date ? date.format("YYYY-MM-DD") : "",
     });
   };
 
   const handleAddEvent = () => {
     // setEvents([...events, form]);
-    setForm({ name: "", date: "", description: "", type: "" });
+    setForm({ event_name: "", event_date: "", event_description: "", event_type: "" });
     setShowModal(false);
   };
 
@@ -151,23 +148,16 @@ export default function CalendarPage() {
 
   const { mutate } = useMutation({
     mutationFn: async (data: FieldType) => {
-      const token = await getToken();
-
-      return await axiosInstance.post("/calendar/event/", data, {
-        headers: {
-          // 'Content-type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      })
+      return await axiosInstance.post("/calendar/event/", data);
     },
   });
 
   const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
     const formattedValues: FieldType = {
       ...values,
-      date: values.date ? dayjs(values.date).format("YYYY-MM-DD") : "",
+      event_date: values.event_date ? dayjs(values.event_date).format("YYYY-MM-DD") : "",
     };
-    console.log(formattedValues.date)
+    console.log(formattedValues.event_date)
     mutate(formattedValues, {
       onSuccess: (data) => {
         if (data.status === 201) {
@@ -251,47 +241,48 @@ export default function CalendarPage() {
               </Button>
             </div>
             <div id="event-list">
-              {calendarEvent?.results.length === 0 && (
+              {Array.isArray(calendarEvent?.results) && calendarEvent.results.length === 0 && (
                 <div className="text-white text-sm opacity-60 mb-4">
                   No events yet.
                 </div>
               )}
-              {calendarEvent?.results.map((event, idx) => (
-                <div
-                  key={idx}
-                  className="border-b pb-4 border-gray-400 border-dashed mb-4"
-                  style={{
-                    borderLeft: `6px solid ${getTypeColor(event.event_type)}`,
-                    paddingLeft: 12,
-                  }}
-                >
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-2">
-                      <span
-                        style={{
-                          display: "inline-block",
-                          width: 14,
-                          height: 14,
-                          borderRadius: "50%",
-                          background: getTypeColor(event.event_type),
-                        }}
-                      ></span>
-                      <span className="text-md font-medium text-gray-400">
-                        {event.date}
+              {Array.isArray(calendarEvent?.results) &&
+                calendarEvent.results.map((event, idx) => (
+                  <div
+                    key={idx}
+                    className="border-b pb-4 border-gray-400 border-dashed mb-4"
+                    style={{
+                      borderLeft: `6px solid ${getTypeColor(event.event_type)}`,
+                      paddingLeft: 12,
+                    }}
+                  >
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-2">
+                        <span
+                          style={{
+                            display: "inline-block",
+                            width: 14,
+                            height: 14,
+                            borderRadius: "50%",
+                            background: getTypeColor(event.event_type),
+                          }}
+                        ></span>
+                        <span className="text-md font-medium text-gray-400">
+                          {event.event_date}
+                        </span>
+                      </div>
+                      <span className="text-lg font-medium ml-6 text-white">
+                        {event.event_name}
                       </span>
                     </div>
-                    <span className="text-lg font-medium ml-6 text-white">
-                      {event.event}
-                    </span>
+                    <p
+                      className="text-sm text-white ml-6"
+                      style={{ color: getTypeColor(event.event_type) }}
+                    >
+                      {event.event_type}
+                    </p>
+                    <p className="text-sm text-white ml-6">{event.event_description}</p>
                   </div>
-                  <p
-                    className="text-sm text-white ml-6"
-                    style={{ color: getTypeColor(event.event_type) }}
-                  >
-                    {event.event_type}
-                  </p>
-                  <p className="text-sm text-white ml-6">{event.description}</p>
-                </div>
               ))}
             </div>
           </div>
@@ -349,7 +340,7 @@ export default function CalendarPage() {
                 {/* <input type="date"/> */}
                 <DatePicker
                   name="date"
-                  value={form.date ? dayjs(form.date) : undefined}
+                  value={form.event_date ? dayjs(form.event_date) : undefined}
                   onChange={handleDateChange}
                   className="w-full"
                   format="YYYY-MM-DD"

@@ -25,19 +25,19 @@ const Login = () => {
 
     const router = useRouter();
 
-    const { login, storeToken } = AuthActions();
+    const { login } = AuthActions();
 
-    const onSubmit = (data:FormData) => {
+    const onSubmit = (data: FormData) => {
         login(data.email, data.password)
-        .json((json) => {
-            storeToken(json.access, "access");
-            storeToken(json.refresh, 'refresh');
-            router.push("dashboard/");
-        })
-        .catch((err) => {
-            setError("root", {type: "manual", message: err.json.detail});
-        });
-    }; 
+            .then(() => {
+                router.push("dashboard/");
+            })
+            .catch((err) => {
+                // Try to extract error message from backend
+                const detail = err?.response?.data?.detail || "Login failed";
+                setError("root", { type: "manual", message: detail });
+            });
+    };
 
     return (
   <>
