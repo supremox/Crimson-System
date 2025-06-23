@@ -1,109 +1,84 @@
-'use client';
+"use client"
 
-import useSWR from 'swr';
-import { fetcher } from '@/app/fetcher';
-import { AuthActions } from '@/app/auth/utils';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import React from 'react';
+import {Layout, theme } from 'antd'
 
-import {
-  Layout,
-  Menu,
-  Avatar,
-  Button,
-  Typography,
-  Card,
-} from 'antd';
-import {
-  HomeOutlined,
-  UserOutlined,
-  FileOutlined,
-  SettingOutlined,
-  PoweroffOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-} from '@ant-design/icons';
+const { Content } = Layout;
 
-const { Sider, Content } = Layout;
-const { Title, Paragraph } = Typography;
-
-export default function Home() {
-  const router = useRouter();
-  const { data: user } = useSWR('/auth/userv2/me', fetcher);
-  const { logout, removeTokens } = AuthActions();
-  const [collapsed, setCollapsed] = useState(false);
-
-  console.log(user)
-    
-  const handleLogout = () => {
-    logout()
-      .res(() => {
-        removeTokens();
-        router.push('/');
-      })
-      .catch(() => {
-        removeTokens();
-        router.push('/');
-      });
-  };
+const App: React.FC = () => {
+  // const [collapsed, setCollapsed] = useState(false);
+  const {
+    token: { colorBgContainer, borderRadiusLG },
+  } = theme.useToken();
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed} theme="dark">
-        <div style={{ padding: 16, textAlign: 'center' }}>
-          <Avatar
-            size={collapsed ? 40 : 64}
-            src="img/ppic.png"
-            style={{ marginBottom: 16 }}
-          />
-           {!collapsed && (
-                <div className="flex flex-col text-white">
-                <h1 className="text-base font-semibold leading-tight">
-                    {user?.first_name || user?.username}
-                </h1>
-                <h3 className="text-sm text-gray-400">Frontend Dev</h3>
-                </div>
-            )}
-        </div>
-        <Menu theme="dark" mode="inline" defaultSelectedKeys={['1']}>
-          <Menu.Item key="1" icon={<HomeOutlined />}>
-            {!collapsed && 'Dashboard'}
-          </Menu.Item>
-          <Menu.Item key="2" icon={<UserOutlined />}>
-            {!collapsed && 'Employee'}
-          </Menu.Item>
-          <Menu.Item key="3" icon={<FileOutlined />}>
-            {!collapsed && 'Files'}
-          </Menu.Item>
-          <Menu.Item key="4" icon={<SettingOutlined />}>
-            {!collapsed && 'Settings'}
-          </Menu.Item>
-          <Menu.Item
-            key="5"
-            icon={<PoweroffOutlined />}
-            onClick={handleLogout}
-            style={{ color: 'red' }}
-          >
-            {!collapsed && 'Logout'}
-          </Menu.Item>
-        </Menu>
-      </Sider>
-
       <Layout>
-        <Content style={{ margin: '24px 16px', padding: 24, background: '#f0f2f5' }}>
-          <Card style={{ maxWidth: 500, margin: '0 auto' }}>
-            <Title level={3}>Hi, {user?.first_name}!</Title>
-            <Paragraph>Your account details:</Paragraph>
-            <ul style={{ marginBottom: 16 }}>
-              <li><strong>First_name:</strong> {user?.first_name}</li>
-              <li><strong>Email:</strong> {user?.email}</li>
-            </ul>
-            <Button type="primary" danger onClick={handleLogout}>
-              Disconnect
-            </Button>
-          </Card>
-        </Content>
-      </Layout>
-    </Layout>
+        <Content style={{ margin: '0 16px' }}>
+          <div className="flex bg-white rounded-lg shadow-md p-5 mt-5 mx-4" style={{borderRadius: 20}}>
+              <div className="flex flex-col">
+                <div className="flex flex-row align-left gap-4">
+                  <button className="self-center bg-green-600"
+                    style={{ height: 45, width: 200, borderRadius: 20, color: '#fff' }} type="submit" name="add_department" >
+                    Anouncement
+                  </button>
+                  <button className="self-center bg-green-600"
+                    style={{ height: 45, width: 200, borderRadius: 20, color: '#fff' }} type="submit" name="add_department" >
+                    Upload Memo
+                  </button>
+                  <button className="self-center bg-green-600" style={{ height:45, width:200, borderRadius: 20, color: '#fff' }} type="submit" name="add_department" >
+                    Post Notice
+                  </button>
+                </div>
+                <div className="flex flex-row gap-4">
+                  <div className="flex flex-2 bg-gray-300 rounded-lg shadow-md p-5 mt-4" style={{borderRadius: 20}} >
+                      <div className="flex flex-col align-left">
+                        <h1 className="bg-red-400 flex items-center shadow-md justify-center" style={{height:50, width:150, borderRadius: 20, color: '#fff'}}>Notice</h1>
+                      < div className="flex flex-1 bg-white rounded-lg shadow-md p-5 mt-2">
+                        <div className="flex flex-col">
+                          <div className="flex flex-row items-center gap-2">
+                            <img
+                                src="/img/ppic.png"
+                                alt="Profile Picture"
+                                className="w-12 h-12 rounded-full mt-2 mr-5 object-cover border border-blue-300 shadow" />
+                            <div className="flex flex-col leading-tight">
+                              <span className='text-sm' > Peter, Parker </span>
+                            <span className='text-sm'>December 9 at 11:43 AM</span>
+                          </div>
+                        </div>
+                        <hr className="mt-3 mb-2"></hr>
+                        <div className="flex flex-col mt-3">
+                          <h3 className="mb-2">[Notice Title]</h3>
+                          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                            Est harum, minima sint necessitatibus,
+                            soluta corporis modi odio quaerat dolorum eligendi id inventore quam voluptates,
+                            eveniet dolor dolorem natus perferendis ipsum?
+                          </p>
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-1 bg-gray-300 rounded-lg shadow-md p-5 mt-4" style={{borderRadius: 20 }}>
+                    <div className="flex flex-col">
+                      <div className="align-left">
+                        <h1 className="mx-auto bg-red-400 flex items-center shadow-md justify-center"
+                          style={{ height:50, width:150, borderRadius: 20, color: '#fff' }}>
+                          Memo
+                        </h1>
+                      </div>
+                      <div className="flex flex-1 bg-white rounded-lg shadow-md p-5 mt-4">
+
+                      </div>
+                    </div>
+                  </div>
+              </div>
+            </div>
+          </div>
+        </Content >
+      </Layout >
+    </Layout >
   );
-}
+};
+
+export default App;
