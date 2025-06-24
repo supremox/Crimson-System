@@ -1,8 +1,8 @@
 "use client";
 
-import { AuthActions } from "@/app/auth/utils";
+// import { AuthActions } from "@/app/auth/utils";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient } from "@/app/components/ReactQueryProvider";  
+import { getQueryClient } from "@/app/components/getQueryClient"; 
 import axiosInstance from "../../../../server/instance_axios";
 
 import { useEffect, useState } from "react";
@@ -32,6 +32,8 @@ type FieldType = {
     event_description?: string;
   };
 
+  const queryClient = getQueryClient()
+
 export default function CalendarPage() {
   const { data: calendarEvent } = useQuery<{
     count: number;
@@ -47,7 +49,6 @@ export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [calendarHTML, setCalendarHTML] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [refetch, setRefetch] = useState(true);
   const [form, setForm] = useState({
     event_name: "",
     event_date: "",
@@ -241,49 +242,54 @@ export default function CalendarPage() {
               </Button>
             </div>
             <div id="event-list">
-              {Array.isArray(calendarEvent?.results) && calendarEvent.results.length === 0 && (
+              {/* {calendarEvent?.results.length === 0 && (
                 <div className="text-white text-sm opacity-60 mb-4">
                   No events yet.
                 </div>
-              )}
-              {Array.isArray(calendarEvent?.results) &&
-                calendarEvent.results.map((event, idx) => (
-                  <div
-                    key={idx}
-                    className="border-b pb-4 border-gray-400 border-dashed mb-4"
-                    style={{
-                      borderLeft: `6px solid ${getTypeColor(event.event_type)}`,
-                      paddingLeft: 12,
-                    }}
-                  >
-                    <div className="flex flex-col">
-                      <div className="flex items-center gap-2">
-                        <span
-                          style={{
-                            display: "inline-block",
-                            width: 14,
-                            height: 14,
-                            borderRadius: "50%",
-                            background: getTypeColor(event.event_type),
-                          }}
-                        ></span>
-                        <span className="text-md font-medium text-gray-400">
-                          {event.event_date}
-                        </span>
-                      </div>
-                      <span className="text-lg font-medium ml-6 text-white">
-                        {event.event_name}
+              )} */}
+              {calendarEvent ? 
+              calendarEvent?.results?.length > 0 
+                ? calendarEvent?.results.map((event, idx) => (
+                <div
+                  key={idx}
+                  className="border-b pb-4 border-gray-400 border-dashed mb-4"
+                  style={{
+                    borderLeft: `6px solid ${getTypeColor(event.event_type)}`,
+                    paddingLeft: 12,
+                  }}
+                >
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                      <span
+                        style={{
+                          display: "inline-block",
+                          width: 14,
+                          height: 14,
+                          borderRadius: "50%",
+                          background: getTypeColor(event.event_type),
+                        }}
+                      ></span>
+                      <span className="text-md font-medium text-gray-400">
+                        {event.event_date}
                       </span>
                     </div>
-                    <p
-                      className="text-sm text-white ml-6"
-                      style={{ color: getTypeColor(event.event_type) }}
-                    >
-                      {event.event_type}
-                    </p>
-                    <p className="text-sm text-white ml-6">{event.event_description}</p>
+                    <span className="text-lg font-medium ml-6 text-white">
+                      {event.event_name}
+                    </span>
                   </div>
-              ))}
+                  <p
+                    className="text-sm text-white ml-6"
+                    style={{ color: getTypeColor(event.event_type) }}
+                  >
+                    {event.event_type}
+                  </p>
+                  <p className="text-sm text-white ml-6">{event.event_description}</p>
+                </div>
+              )) : (
+                <div className="text-white text-sm opacity-60 mb-4">
+                  No events yet.
+                </div>
+              ) : undefined}
             </div>
           </div>
         </div>

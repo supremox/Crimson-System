@@ -19,7 +19,7 @@ class Department(models.Model):
     
 class Position(models.Model):
     position_name = models.CharField(max_length=100)
-    department = models.ForeignKey('Department', on_delete=models.CASCADE, related_name='positions')
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='positions')
 
     def __str__(self):
         return self.position_name

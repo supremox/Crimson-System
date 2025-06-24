@@ -1,14 +1,15 @@
-'use client';
+"use client";
 
-import useSWR from 'swr';
-import { fetcher } from '@/app/fetcher';
-import { AuthActions } from '@/app/auth/utils';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { AntdRegistry } from "@ant-design/nextjs-registry";
+import useSWR from "swr";
+
+// import { fetcher } from '@/app/fetcher';
+import axiosInstance from "../../../server/instance_axios";
+// import { AuthActions } from '@/app/auth/utils';
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import Link from "next/link";
-
-import { useMutation } from "@tanstack/react-query";
+import { removeToken } from "../../../server/getToken";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 import {
   Layout,
@@ -18,26 +19,21 @@ import {
   Typography,
   Card,
   MenuProps,
-  Dropdown
-} from 'antd';
+  Dropdown,
+} from "antd";
 
 import {
   CalendarOutlined,
   ClockCircleOutlined,
-  DesktopOutlined,
   FileOutlined,
-  PieChartOutlined,
-  TeamOutlined,
   UserOutlined,
   WalletOutlined,
-  MenuOutlined,
-  BellOutlined,
   NotificationOutlined,
   LogoutOutlined,
   HomeOutlined,
-} from '@ant-design/icons';
+} from "@ant-design/icons";
 
-const { Sider, Content,  Footer } = Layout;
+const { Sider, Content, Footer } = Layout;
 const { Title, Paragraph } = Typography;
 
 type MenuItem = Required<MenuProps>["items"][number];
@@ -70,7 +66,11 @@ const items: MenuItem[] = [
     getItem("Cash", "6"),
   ]),
   getItem("Payroll", "7", <WalletOutlined />),
-  getItem(<Link href={"/dashboard/employee"}>Employee</Link>, "8", <UserOutlined />),
+  getItem(
+    <Link href={"/dashboard/employee"}>Employee</Link>,
+    "8",
+    <UserOutlined />
+  ),
 ];
 
 const profileMenuItems = [
@@ -81,34 +81,51 @@ const profileMenuItems = [
   { key: "4", icon: <LogoutOutlined />, label: "Logout", danger: true },
 ];
 
-
+const fetcher = (url: string) => axiosInstance.get(url);
 
 export default function Home({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const router = useRouter();
-  const { data: user } = useSWR('/auth/userv2/me', fetcher);
-  const { logout} = AuthActions();
+  const { data: user } = useQuery({
+    queryKey: ["user"],
+    queryFn: () => fetcher("/auth/userv2/me/"),
+  });
+  // const { logout} = AuthActions();
   const [collapsed, setCollapsed] = useState(false);
 
- 
-  
+  console.log(user);
+
+  const { mutate: logout } = useMutation({
+    mutationFn: () => axiosInstance.post("/auth/logout/"),
+  });
+
   const profileMenu = {
     items: profileMenuItems,
-    onClick: () =>
-      logout()
-        .then(() => {
-          router.push('/');
-        })
-        .catch(() => {
-          router.push('/');
-        }),
+    onClick: () => {
+      removeToken("accessToken");
+      removeToken("refreshToken");
+      router.push("/");
+    },
+    // logout(undefined, {
+    //   onSuccess: async (data) => {
+    //     if (data.status === 200) {
+    //       removeToken("accessToken");
+    //       removeToken("refreshToken");
+    //       window.location.href = '/';
+    //     }
+    //   },
+    // }),
   };
 
   return (
-    <AntdRegistry>
-      <Layout style={{ minHeight: '100vh' }}>
-        <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed} theme="dark">
+      <Layout style={{ minHeight: "100vh" }}>
+        <Sider
+          collapsible
+          collapsed={collapsed}
+          onCollapse={setCollapsed}
+          theme="dark"
+        >
           <Dropdown
             menu={profileMenu}
             trigger={["click"]}
@@ -116,23 +133,23 @@ export default function Home({
             overlayStyle={{ marginLeft: "10px" }}
             arrow
           >
-            <div style={{ padding: 16, textAlign: 'center' }}>
+            <div style={{ padding: 16, textAlign: "center" }}>
               <Avatar
                 size={collapsed ? 40 : 64}
-                src="img/ppic.png"
+                src="/img/ppic.png"
                 style={{ marginBottom: 16 }}
               />
               {!collapsed && (
-                    <div className="flex flex-col text-white">
-                    <h1 className="text-base font-semibold leading-tight">
-                        {user?.first_name || user?.username}
-                    </h1>
-                    <h3 className="text-sm text-gray-400">Frontend Dev</h3>
-                    </div>
-                )}
+                <div className="flex flex-col text-white">
+                  <h1 className="text-base font-semibold leading-tight">
+                    {user?.data.first_name || user?.data.first_name}
+                  </h1>
+                  <h3 className="text-sm text-gray-400">Frontend Dev</h3>
+                </div>
+              )}
             </div>
           </Dropdown>
-           <Menu
+          <Menu
             theme="dark"
             defaultSelectedKeys={["1"]}
             mode="inline"
@@ -141,11 +158,10 @@ export default function Home({
         </Sider>
 
         <Layout>
-            <Content>
-                <AntdRegistry>{children}</AntdRegistry>
-            </Content>
+          <Content>
+            {children}
+          </Content>
         </Layout>
       </Layout>
-    </AntdRegistry>
   );
 }

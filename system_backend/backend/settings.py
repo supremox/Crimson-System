@@ -26,7 +26,11 @@ SECRET_KEY = 'django-insecure-@(wndryh3%kl^4v06%__&htspow1eeho*8a05lo+ei3z#t-rcl
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "192.168.0.123",
+]
 
 
 # Application definition
@@ -184,9 +188,10 @@ SITE_NAME = "Crimson System"
 DOMAIN = 'localhost:3000'
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOW_ALL_ORIGINS = True
 
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:3000",
-#     "http://127.0.0.1:3000",
-# ]
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://192.168.0.123:3000", 
+]

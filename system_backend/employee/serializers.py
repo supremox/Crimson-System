@@ -25,7 +25,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
 
 
 class PositionSerializer(serializers.ModelSerializer):
-    department = serializers.CharField()  # Accept department name as input
+    # department = serializers.CharField()  # Accept department name as input
     department_name = serializers.CharField(source='department.department_name', read_only=True)
 
     class Meta:
@@ -33,6 +33,7 @@ class PositionSerializer(serializers.ModelSerializer):
         fields = ['id', 'position_name', 'department_name']
 
     def create(self, validated_data):
+        print(f"Data: {validated_data}")
         dept_name = validated_data.pop('department')
 
         try:
