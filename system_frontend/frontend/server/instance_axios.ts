@@ -1,5 +1,6 @@
 import axios from "axios";
-import { getToken, getRefresh } from "./getToken";
+import { getToken } from "./getToken";
+import { refreshToken } from "./refreshToken";
 // Create an Axios instance
 const axiosInstance = axios.create({
   baseURL: "http://localhost:8000/",
@@ -17,8 +18,6 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-
-    // Prevent infinite loop
     if (
       error.response &&
       error.response.status === 401 &&
@@ -26,11 +25,10 @@ axiosInstance.interceptors.response.use(
     ) {
       originalRequest._retry = true;
       try {
-        const newToken = await getRefresh();
+        const newToken = await refreshToken();
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return axiosInstance(originalRequest);
       } catch (refreshError) {
-        // Optionally handle logout or redirect
         return Promise.reject(refreshError);
       }
     }

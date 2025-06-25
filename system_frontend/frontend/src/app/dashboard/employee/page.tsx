@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useSWR from "swr";
 import axiosInstance from "../../../../server/instance_axios";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -26,8 +26,33 @@ import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 
-interface DepartmentModel {
-  department_name: string;
+type EmployeeFieldType = {
+  first_name: string;
+  last_name: string;
+  middle_name: string;
+  suffix: string;
+  employee_id: string;
+  email: string;
+  phone_no: string;
+  date_of_birth: Date;
+  gender: string;
+  civil_status: string;
+  educational_attainment: string;
+  address: string;
+  sss: string;
+  pag_ibig: string;
+  philhealth: string;
+  tin: string;
+  start_date: Date;
+  salary: string;
+  shift: string;
+  department: string;
+  position: string;
+  status: string;
+  incentives: string;
+  work_days: string;
+  on_call_days: string;
+
 }
 
 type DepartmentFieldType = {
@@ -36,12 +61,23 @@ type DepartmentFieldType = {
 
 type PositionFieldType = {
   position_name: string;
+  department: string;
 };
 
-const queryClient = getQueryClient();
+type ShiftFieldType = {
+  shift_name: string;
+  start_time: string;
+  end_time: string;
+  break_start: string;
+  break_end: string;
+};
+
+type IncentiveFieldType = {
+  incentive_name: string;
+  incentive_amount: string;
+};
 
 export default function EmployeePage() {
-  // Tab state: "employee" or "add"
   const [employeeForm] = Form.useForm();
   const [departmentForm] = Form.useForm();
   const [positionForm] = Form.useForm();
@@ -60,6 +96,33 @@ export default function EmployeePage() {
 
   const handleChange = (value: string[]) => {
     console.log(`selected ${value}`);
+  };
+
+  const queryClient = getQueryClient();
+  const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
+  const [filteredPositions, setFilteredPositions] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (selectedDepartment) {
+      axiosInstance
+        .get(`/employee/department/positions/?department_name=${encodeURIComponent(selectedDepartment)}`)
+        .then((res) => {
+          setFilteredPositions(res.data.positions || []);
+        })
+        .catch(() => {
+          setFilteredPositions([]);
+        });
+    } else {
+      setFilteredPositions([]);
+    }
+  }, [selectedDepartment]);
+
+  console.log('filtered positions',filteredPositions)
+  const departmenthandleChange = (value: string) => {
+    // console.log(`selected ${value}`);
+    setSelectedDepartment(value);
+    // Optionally reset position field in the form
+    employeeForm.setFieldsValue({ position: undefined });
   };
 
   const [value, setValue] = useState<Dayjs | null>(null);
@@ -85,11 +148,6 @@ export default function EmployeePage() {
   });
 
   // Fetch department data from backend
-  const { data: department } = useQuery({
-    queryKey: ["department"],
-    queryFn: () => fetcher("/employee/departments/dropdown/"),
-  });
-
   const { data: departments } = useQuery({
     queryKey: ["departments"],
     queryFn: () => fetcher("/employee/departments/names/"),
@@ -100,7 +158,8 @@ export default function EmployeePage() {
     queryKey: ["position"],
     queryFn: () => fetcher("/employee/position/names/"),
   });
-  console.log(departments, department);
+
+   console.log(position)
 
   // Fetch shift data from backend
   const { data: shift } = useQuery({
@@ -125,16 +184,51 @@ export default function EmployeePage() {
     },
   });
 
+   const { mutate: mutate_shift } = useMutation({
+    mutationFn: async (data: ShiftFieldType) => {
+      console.log(data.start_time)
+      return await axiosInstance.post("/employee/shifts/names/", data);
+    },
+  });
+
+  const { mutate: mutate_incentive } = useMutation({
+    mutationFn: async (data: IncentiveFieldType) => {
+      return await axiosInstance.post("/employee/incentives/name/", data);
+    },
+  });
+
+  const { mutate: mutate_employee } = useMutation({
+    mutationFn: async (data: EmployeeFieldType) => {
+      return await axiosInstance.post("/employee/name/", data);
+    },
+  });
+
+
   const onAddEmployee = (values: any) => {
-    // TODO: Call backend to add employee
-    console.log(values);
+    const employeeformattedValues: EmployeeFieldType = {
+          ...values,
+          date_of_birth: values.date_of_birth ? dayjs(values.date_of_birth).format("YYYY-MM-DD") : "",
+          start_date: values.start_date ? dayjs(values.start_date).format("YYYY-MM-DD") : "",
+        };
+    console.log('Employee Data', employeeformattedValues);
+    mutate_employee(employeeformattedValues, {
+      onSuccess: (data) => {
+        if (data.status === 201) {
+          queryClient.invalidateQueries({ queryKey: ["employees"] });
+          alert(data.data.message);
+          console.log(data.data.employee.employee_id);
+        }
+      },
+      onError: (error) => {
+        alert(error);
+      },
+    });
   };
 
   const onAddDepartment = (values: any) => {
-    console.log(values);
     mutate_department(values, {
       onSuccess: (data) => {
-        if (data.status === 200) {
+        if (data.status === 201) {
           queryClient.invalidateQueries({ queryKey: ["departments"] });
         }
       },
@@ -145,10 +239,9 @@ export default function EmployeePage() {
   };
 
   const onAddPosition = (values: any) => {
-    console.log(values);
     mutate_position(values, {
       onSuccess: (data) => {
-        if (data.status === 200) {
+        if (data.status === 201) {
           queryClient.invalidateQueries({ queryKey: ["position"] });
         }
       },
@@ -158,9 +251,39 @@ export default function EmployeePage() {
     });
   };
 
+  const onAddIncentive = (values: any) => {
+    mutate_incentive(values, {
+      onSuccess: (data) => {
+        if (data.status === 201) {
+          queryClient.invalidateQueries({ queryKey: ["incentive"] });
+        }
+      },
+      onError: (error) => {
+        alert(error);
+      },
+    });
+  };
+
+
   const onAddShift = (values: any) => {
-    // TODO: Call backend to add shift
-    console.log(values);
+    const formattedValues: ShiftFieldType = {
+      ...values,
+      start_time: values.start_time ? dayjs(values.start_time).format("HH:mm:ss") : "",
+      end_time: values.end_time ? dayjs(values.end_time).format("HH:mm:ss") : "",
+      break_start: values.break_start ? dayjs(values.break_start).format("HH:mm:ss") : "",
+      break_end: values.break_end ? dayjs(values.break_end).format("HH:mm:ss") : "",
+    };
+    console.log(formattedValues)
+    mutate_shift(formattedValues, {
+      onSuccess: (data) => {
+        if (data.status === 201) {
+          queryClient.invalidateQueries({ queryKey: ["shift"] });
+        }
+      },
+      onError: (error) => {
+        alert(error);
+      },
+    });
   };
 
   return (
@@ -286,12 +409,12 @@ export default function EmployeePage() {
                 )}
                 {Array.isArray(employees) &&
                   employees.map((emp: any) => (
-                    <tr key={emp.id} className="even:bg-blue-50">
+                    <tr key={emp.employee_id} className="even:bg-blue-50">
                       <td className="p-4 text-[15px] text-slate-900 font-medium">
                         {emp.employee_id}
                       </td>
                       <td className="p-4 text-[15px] text-slate-900 font-medium">
-                        {emp.name}
+                        {emp.first_name} {emp.last_name}
                       </td>
                       <td className="p-4 text-[15px] text-slate-600 font-medium">
                         {emp.email}
@@ -443,6 +566,19 @@ export default function EmployeePage() {
                             <Option value="Widowed">Widowed</Option>
                           </Select>
                         </Form.Item>
+
+                        <Form.Item
+                          label="Educational Attainment"
+                          name="educational_attainment"
+                          rules={[{ required: true }]}
+                        >
+                          <Select placeholder="Educational Attainment">
+                            <Option value="Associate degree">Associate degree</Option>
+                            <Option value="Bachelor's degree">Bachelor's degree</Option>
+                            <Option value="Master's degree">Master's degree</Option>
+                            <Option value="PhD degree">PhD degree</Option>
+                          </Select>
+                        </Form.Item>
                       </div>
                       <Form.Item
                         label="Address"
@@ -524,11 +660,14 @@ export default function EmployeePage() {
                           name="shift"
                           rules={[{ required: true }]}
                         >
-                          <Select placeholder="Select shift">
-                            {/* Populate dynamically from API */}
-                            <Option value="1">Morning Shift</Option>
-                            <Option value="2">Night Shift</Option>
-                          </Select>
+                        <Select
+                          placeholder="Select Shift"
+                          onChange={handleChange}
+                          options={shift.map((shft: any) => ({
+                            label: shft.shift_name,
+                            value: shft.id,
+                          }))}
+                        />
                         </Form.Item>
                       </div>
 
@@ -536,30 +675,30 @@ export default function EmployeePage() {
                         <Form.Item
                           label="Department"
                           name="department"
+                          className="w-40"
                           rules={[{ required: true }]}
                         >
-                          <Select placeholder="Select department">
-                            {department?.results?.length > 0
-                              ? department.results.map((dept: any) => (
-                                  <Option key={dept.id} value={dept.id}>
-                                    {dept.name}
-                                  </Option>
-                                ))
-                              : null}
-                          </Select>
+                          <Select
+                          placeholder="Department"
+                          onChange={departmenthandleChange}
+                          options={departments.map((dept: any) => ({
+                            label: dept.department_name,
+                            value: dept.id,
+                          }))}
+                        />
                         </Form.Item>
 
-                        <Form.Item
-                          label="Position"
-                          name="position"
-                          rules={[{ required: true }]}
-                        >
-                          <Select placeholder="Select position">
-                            {/* Populate dynamically from API */}
-                            <Option value="1">Manager</Option>
-                            <Option value="2">Developer</Option>
-                          </Select>
-                        </Form.Item>
+                        <Form.Item label="Position" name="position" className="w-40" rules={[{ required: true }]}>
+                        <Select
+                          style={{ width: "100%" }}
+                          placeholder="position"
+                          onChange={handleChange}
+                          options={filteredPositions.map((pos: any) => ({
+                            label: pos.position_name,
+                            value: pos.id,
+                          }))}
+                        />
+                      </Form.Item>
 
                         <Form.Item
                           label="Career Status"
@@ -595,7 +734,7 @@ export default function EmployeePage() {
                           placeholder="Incentive"
                           onChange={handleChange}
                           options={incentives.map((inc: any) => ({
-                            label: inc.name,
+                            label: inc.incentive_name,
                             value: inc.id,
                           }))}
                         />
@@ -604,13 +743,13 @@ export default function EmployeePage() {
                       <Form.Item label="Work Days" name="work_days">
                         <Checkbox.Group
                           options={[
-                            { label: "Monday", value: "mon" },
-                            { label: "Tuesday", value: "tue" },
-                            { label: "Wednesday", value: "wed" },
-                            { label: "Thursday", value: "thu" },
-                            { label: "Friday", value: "fri" },
-                            { label: "Saturday", value: "sat" },
-                            { label: "Sunday", value: "sun" },
+                            { label: "Monday",    value: 1 },
+                            { label: "Tuesday",   value: 2 },
+                            { label: "Wednesday", value: 3 },
+                            { label: "Thursday",  value: 4 },
+                            { label: "Friday",    value: 5 },
+                            { label: "Saturday",  value: 6 },
+                            { label: "Sunday",    value: 7 },
                           ]}
                         />
                       </Form.Item>
@@ -618,13 +757,13 @@ export default function EmployeePage() {
                       <Form.Item label="On Call Days" name="on_call_days">
                         <Checkbox.Group
                           options={[
-                            { label: "Monday", value: "mon" },
-                            { label: "Tuesday", value: "tue" },
-                            { label: "Wednesday", value: "wed" },
-                            { label: "Thursday", value: "thu" },
-                            { label: "Friday", value: "fri" },
-                            { label: "Saturday", value: "sat" },
-                            { label: "Sunday", value: "sun" },
+                            { label: "Monday",    value: 1 },
+                            { label: "Tuesday",   value: 2 },
+                            { label: "Wednesday", value: 3 },
+                            { label: "Thursday",  value: 4 },
+                            { label: "Friday",    value: 5 },
+                            { label: "Saturday",  value: 6 },
+                            { label: "Sunday",    value: 7 },
                           ]}
                         />
                       </Form.Item>
@@ -849,12 +988,12 @@ export default function EmployeePage() {
                       )}
                       {Array.isArray(position) &&
                         position.map((pos: any) => (
-                          <tr key={pos.id} className="even:bg-blue-950">
+                          <tr key={pos.id} className="even:bg-gray-200">
                             <td className="p-4 text-[15px] text-slate-900 font-medium">
-                              {pos.pos_id}
+                              {pos.id}
                             </td>
                             <td className="p-4 text-[15px] text-slate-900 font-medium">
-                              {pos.name}
+                              {pos.position_name}
                             </td>
                             <td className="p-4 text-[15px] text-slate-900 font-medium">
                               {pos.department}
@@ -913,11 +1052,11 @@ export default function EmployeePage() {
                     </Form.Item>
 
                     <div className="flex flex-row gap-6">
-                      <Form.Item label="Shift Start Time" name="shiftStartTime">
+                      <Form.Item label="Shift Start Time" name="start_time">
                         <TimePicker value={value} onChange={onTimeChange} />
                       </Form.Item>
 
-                      <Form.Item label="Shift End Time" name="shiftEndTime">
+                      <Form.Item label="Shift End Time" name="end_time">
                         <TimePicker value={value} onChange={onTimeChange} />
                       </Form.Item>
                     </div>
@@ -925,12 +1064,12 @@ export default function EmployeePage() {
                     <div className="flex flex-row gap-6">
                       <Form.Item
                         label="Shift Break Start"
-                        name="shiftBreakStart"
+                        name="break_start"
                       >
                         <TimePicker value={value} onChange={onTimeChange} />
                       </Form.Item>
 
-                      <Form.Item label="Shift Break End" name="shiftBreakEnd">
+                      <Form.Item label="Shift Break End" name="break_end">
                         <TimePicker value={value} onChange={onTimeChange} />
                       </Form.Item>
                     </div>
@@ -960,6 +1099,12 @@ export default function EmployeePage() {
                           </th>
                           <th className="p-4 text-left text-sm font-medium text-white">
                             Shift Name
+                          </th>
+                          <th className="p-4 text-left text-sm font-medium text-white">
+                            Shift Start
+                          </th>
+                          <th className="p-4 text-left text-sm font-medium text-white">
+                            Shift End
                           </th>
                           <th className="p-4 text-left text-sm font-medium text-white">
                             Actions
@@ -998,10 +1143,16 @@ export default function EmployeePage() {
                           shift.map((shft: any) => (
                             <tr key={shft.id} className="even:bg-blue-50">
                               <td className="p-4 text-[15px] text-slate-900 font-medium">
-                                {shft.shift_id}
+                                {shft.id}
                               </td>
                               <td className="p-4 text-[15px] text-slate-900 font-medium">
-                                {shft.shiftname}
+                                {shft.shift_name}
+                              </td>
+                              <td className="p-4 text-[15px] text-slate-900 font-medium">
+                                {shft.start_time}
+                              </td>
+                              <td className="p-4 text-[15px] text-slate-900 font-medium">
+                                {shft.end_time}
                               </td>
                               <td className="p-4">
                                 {/* Actions (edit/delete) */}
@@ -1038,7 +1189,7 @@ export default function EmployeePage() {
           <Form
             form={incentiveForm}
             layout="vertical"
-            onFinish={onAddShift}
+            onFinish={onAddIncentive}
             className="rounded-lg p-4"
           >
             <div className="grid grid-cols-5 grid-rows-5 mt-7 gap-4">
@@ -1059,7 +1210,7 @@ export default function EmployeePage() {
 
                     <Form.Item
                       label="Incentive Amount"
-                      name="incentive_value"
+                      name="incentive_amount"
                       className="w-75"
                       rules={[{ required: true }]}
                     >
@@ -1135,13 +1286,13 @@ export default function EmployeePage() {
                           incentive.map((inctve: any) => (
                             <tr key={inctve.id} className="even:bg-blue-50">
                               <td className="p-4 text-[15px] text-slate-900 font-medium">
-                                {inctve.incentive_id}
+                                {inctve.id}
                               </td>
                               <td className="p-4 text-[15px] text-slate-900 font-medium">
                                 {inctve.incentive_name}
                               </td>
                               <td className="p-4 text-[15px] text-slate-900 font-medium">
-                                {inctve.incentive_value}
+                                {inctve.incentive_amount}
                               </td>
                               <td className="p-4">
                                 {/* Actions (edit/delete) */}

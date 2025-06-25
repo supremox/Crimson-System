@@ -25,12 +25,12 @@ class DepartmentSerializer(serializers.ModelSerializer):
 
 
 class PositionSerializer(serializers.ModelSerializer):
-    # department = serializers.CharField()  # Accept department name as input
+    department = serializers.CharField() 
     department_name = serializers.CharField(source='department.department_name', read_only=True)
 
     class Meta:
         model = Position
-        fields = ['id', 'position_name', 'department_name']
+        fields = ['id', 'position_name', 'department', 'department_name']
 
     def create(self, validated_data):
         print(f"Data: {validated_data}")
@@ -78,10 +78,10 @@ class EmployeeSerializer(serializers.ModelSerializer):
         model = Employee
         fields = [
             'first_name', 'last_name', 'middle_name', 'suffix', 'email',
-            'employee_id', 'date_of_birth', 'gender', 'civil_status',
+            'employee_id', 'date_of_birth', 'gender', 'civil_status', 'educational_attainment',
             'phone_no', 'address', 'sss', 'pag_ibig', 'philhealth', 'tin',
             'start_date', 'salary', 'shift', 'department', 'position',
-            'incentives', 'work_days', 'on_call_days', 'status'
+            'incentives', 'work_days', 'on_call_days', 'career_status'
         ]
 
     def create(self, validated_data):
@@ -89,21 +89,34 @@ class EmployeeSerializer(serializers.ModelSerializer):
         user_data = {
             'first_name': validated_data.pop('first_name'),
             'last_name': validated_data.pop('last_name'),
-            'middle_name': validated_data.pop('middle_name', ''),
-            'suffix': validated_data.pop('suffix', ''),
             'email': validated_data.pop('email'),
+            'employee_id': validated_data.pop('employee_id'),
         }
+
+        email = user_data['email']
+        employee_id = user_data['employee_id']
+
+        # Set username as email and password as employee_id
+        user = CustomUser(
+            email=email,
+            username=email,
+            first_name=user_data['first_name'],
+            last_name=user_data['last_name'],
+        )
+        user.set_password(employee_id)
+        user.save()
 
         # Pop out many-to-many fields
         incentives = validated_data.pop('incentives')
         work_days = validated_data.pop('work_days')
         on_call_days = validated_data.pop('on_call_days')
 
-        # Create user
-        user = CustomUser.objects.create(**user_data)
-
-        # Create employee
-        employee = Employee.objects.create(user=user, **validated_data)
+        # # Create employee
+        employee = Employee.objects.create(
+            user=user,
+            employee_id=employee_id,
+            **validated_data
+        )
         employee.incentives.set(incentives)
         employee.work_days.set(work_days)
         employee.on_call_days.set(on_call_days)

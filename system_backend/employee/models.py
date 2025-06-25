@@ -6,7 +6,7 @@ class Shift(models.Model):
     start_time = models.TimeField()
     end_time = models.TimeField()
     break_start = models.TimeField()
-    end_start = models.TimeField()
+    break_end = models.TimeField()
 
     def __str__(self):
         return self.shift_name
@@ -50,13 +50,16 @@ class OnCall_days(models.Model):
     sunday = models.BooleanField(default=False)
 
 
+    
 # Create your models here.
 class Employee(models.Model):
+    avatar = models.ImageField(null=True, blank=True)
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     employee_id = models.CharField(unique=True, max_length=10)
     date_of_birth = models.DateField()
     gender = models.CharField(max_length=100)
     civil_status = models.CharField(max_length=100)
+    educational_attainment = models.CharField(max_length=100, null=True, blank=True)
     phone_no = models.CharField(unique=True, max_length=11)
     address = models.CharField(max_length=255)
 
@@ -75,7 +78,7 @@ class Employee(models.Model):
     incentives = models.ManyToManyField(Incentive)
     work_days = models.ManyToManyField(Work_days)
     on_call_days = models.ManyToManyField(OnCall_days)
-    status = models.CharField(max_length=50)
+    career_status = models.CharField(max_length=50)
 
     def __str__(self):
         return self.employee_id

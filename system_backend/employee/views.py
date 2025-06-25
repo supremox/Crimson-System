@@ -1,5 +1,6 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from .models import Employee, Department, Position, Shift, Incentive, Work_days, OnCall_days
 from .serializers import ( 
     EmployeeSerializer, 
@@ -17,7 +18,7 @@ class EmployeeListCreateView(generics.ListCreateAPIView):
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-
+        print(f"Data From Front-end: {request.data}")
         if serializer.is_valid():
             self.perform_create(serializer)
             return Response({
@@ -36,7 +37,7 @@ class DepartmentListCreateView(generics.ListCreateAPIView):
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-
+        
         if serializer.is_valid():
             self.perform_create(serializer)
             return Response({
@@ -49,10 +50,23 @@ class DepartmentListCreateView(generics.ListCreateAPIView):
             "errors": serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
     
-class DepartmentNameListView(generics.ListAPIView):
+class DepartmentPositionListView(APIView):
     def get(self, request, *args, **kwargs):
-        departments = Department.objects.values_list('department_name', flat=True)
-        return Response({"departments": list(departments)})
+        department_name = request.query_params.get("department_name")
+        if not department_name:
+            return Response({"error": "department_name is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            department = Department.objects.get(id=department_name)
+        except Department.DoesNotExist:
+            return Response({"error": "Department not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        positions = Position.objects.filter(department=department)
+        serialized = PositionSerializer(positions, many=True)
+        return Response({
+            "department_name": department.department_name,
+            "positions": serialized.data
+        }, status=status.HTTP_200_OK)
 
 class PositionListCreateView(generics.ListCreateAPIView):
     queryset = Position.objects.all()
@@ -60,7 +74,6 @@ class PositionListCreateView(generics.ListCreateAPIView):
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-
         if serializer.is_valid():
             self.perform_create(serializer)
             return Response({
