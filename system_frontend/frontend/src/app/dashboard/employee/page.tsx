@@ -45,15 +45,14 @@ type EmployeeFieldType = {
   tin: string;
   start_date: Date;
   salary: string;
-  shift: string;
-  department: string;
-  position: string;
+  shift_id: string;
+  department_id: string;
+  position_id: string;
   status: string;
-  incentives: string;
+  incentives_id: string;
   work_days: string;
   on_call_days: string;
-
-}
+};
 
 type DepartmentFieldType = {
   department_name: string;
@@ -83,6 +82,7 @@ export default function EmployeePage() {
   const [positionForm] = Form.useForm();
   const [shiftForm] = Form.useForm();
   const [incentiveForm] = Form.useForm();
+  const [openResponsive, setOpenResponsive] = useState(false);
   const [activeTab, setActiveTab] = useState<
     "employee" | "add" | "department_and_position" | "shift" | "incentive"
   >("employee");
@@ -99,25 +99,27 @@ export default function EmployeePage() {
   };
 
   const queryClient = getQueryClient();
-  const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
+  const [selectedDepartment, setSelectedDepartment] = useState<string | null>(
+    null
+  );
   const [filteredPositions, setFilteredPositions] = useState<any[]>([]);
 
-  useEffect(() => {
-    if (selectedDepartment) {
-      axiosInstance
-        .get(`/employee/department/positions/?department_name=${encodeURIComponent(selectedDepartment)}`)
-        .then((res) => {
-          setFilteredPositions(res.data.positions || []);
-        })
-        .catch(() => {
-          setFilteredPositions([]);
-        });
-    } else {
-      setFilteredPositions([]);
-    }
-  }, [selectedDepartment]);
+  const { data: departmentPosition, isSuccess } = useQuery({
+    queryKey: ['department-position', { department: selectedDepartment }],
+    queryFn: () => axiosInstance
+        .get(`/employee/department/positions/?department_name=${selectedDepartment}`),
+    enabled: !!selectedDepartment // false
+  })
 
-  console.log('filtered positions',filteredPositions)
+  console.log("department pos", departmentPosition?.data)
+
+  useEffect(() => {
+    if (isSuccess) {
+      setFilteredPositions(departmentPosition.data.positions)
+    }
+  }, [isSuccess]);
+
+  // console.log('filtered positions',filteredPositions)
   const departmenthandleChange = (value: string) => {
     // console.log(`selected ${value}`);
     setSelectedDepartment(value);
@@ -141,6 +143,8 @@ export default function EmployeePage() {
     queryFn: () => fetcher("/employee/name/"),
   });
 
+  console.log("Employee Records", employees);
+
   // Fetch incentives data from backend
   const { data: incentives } = useQuery({
     queryKey: ["incentives"],
@@ -159,7 +163,7 @@ export default function EmployeePage() {
     queryFn: () => fetcher("/employee/position/names/"),
   });
 
-   console.log(position)
+  // console.log(position);
 
   // Fetch shift data from backend
   const { data: shift } = useQuery({
@@ -184,9 +188,9 @@ export default function EmployeePage() {
     },
   });
 
-   const { mutate: mutate_shift } = useMutation({
+  const { mutate: mutate_shift } = useMutation({
     mutationFn: async (data: ShiftFieldType) => {
-      console.log(data.start_time)
+      // console.log(data.start_time)
       return await axiosInstance.post("/employee/shifts/names/", data);
     },
   });
@@ -203,14 +207,17 @@ export default function EmployeePage() {
     },
   });
 
-
   const onAddEmployee = (values: any) => {
     const employeeformattedValues: EmployeeFieldType = {
-          ...values,
-          date_of_birth: values.date_of_birth ? dayjs(values.date_of_birth).format("YYYY-MM-DD") : "",
-          start_date: values.start_date ? dayjs(values.start_date).format("YYYY-MM-DD") : "",
-        };
-    console.log('Employee Data', employeeformattedValues);
+      ...values,
+      date_of_birth: values.date_of_birth
+        ? dayjs(values.date_of_birth).format("YYYY-MM-DD")
+        : "",
+      start_date: values.start_date
+        ? dayjs(values.start_date).format("YYYY-MM-DD")
+        : "",
+    };
+    // console.log('Employee Data', employeeformattedValues);
     mutate_employee(employeeformattedValues, {
       onSuccess: (data) => {
         if (data.status === 201) {
@@ -264,16 +271,23 @@ export default function EmployeePage() {
     });
   };
 
-
   const onAddShift = (values: any) => {
     const formattedValues: ShiftFieldType = {
       ...values,
-      start_time: values.start_time ? dayjs(values.start_time).format("HH:mm:ss") : "",
-      end_time: values.end_time ? dayjs(values.end_time).format("HH:mm:ss") : "",
-      break_start: values.break_start ? dayjs(values.break_start).format("HH:mm:ss") : "",
-      break_end: values.break_end ? dayjs(values.break_end).format("HH:mm:ss") : "",
+      start_time: values.start_time
+        ? dayjs(values.start_time).format("HH:mm:ss")
+        : "",
+      end_time: values.end_time
+        ? dayjs(values.end_time).format("HH:mm:ss")
+        : "",
+      break_start: values.break_start
+        ? dayjs(values.break_start).format("HH:mm:ss")
+        : "",
+      break_end: values.break_end
+        ? dayjs(values.break_end).format("HH:mm:ss")
+        : "",
     };
-    console.log(formattedValues)
+    // console.log(formattedValues)
     mutate_shift(formattedValues, {
       onSuccess: (data) => {
         if (data.status === 201) {
@@ -420,10 +434,10 @@ export default function EmployeePage() {
                         {emp.email}
                       </td>
                       <td className="p-4 text-[15px] text-slate-600 font-medium">
-                        {emp.department}
+                        {emp.department.department_name}
                       </td>
                       <td className="p-4 text-[15px] text-slate-600 font-medium">
-                        {emp.position}
+                        {emp.position.position_name}
                       </td>
                       <td className="p-4 text-[15px] text-slate-600 font-medium">
                         <h3
@@ -435,18 +449,28 @@ export default function EmployeePage() {
                             color: "white",
                           }}
                         >
-                          {emp.status || "Regular"}
+                          {emp.career_status}
                         </h3>
                       </td>
                       <td className="p-4">
                         {/* Actions (edit/delete) */}
                         <div className="flex items-center">
-                          <button className="mr-3 cursor-pointer" title="Edit">
-                            {/* ...edit icon... */}
-                          </button>
-                          <button title="Delete" className="cursor-pointer">
-                            {/* ...delete icon... */}
-                          </button>
+                          {/* Actions (edit/delete) */}
+                          <div className="flex items-center">
+                            <button
+                              className="mr-3 cursor-pointer text-blue-600 hover:text-blue-800"
+                              title="Update"
+                              onClick={() => setOpenResponsive(true)}
+                            >
+                              <EditOutlined />
+                            </button>
+                            <button
+                              className="cursor-pointer text-red-600 hover:text-red-800"
+                              title="Delete"
+                            >
+                              <DeleteOutlined />
+                            </button>
+                          </div>
                         </div>
                       </td>
                     </tr>
@@ -457,6 +481,350 @@ export default function EmployeePage() {
         </div>
       )}
 
+      <Modal
+        centered
+        open={openResponsive}
+        onOk={() => setOpenResponsive(false)}
+        onCancel={() => setOpenResponsive(false)}
+        width={{
+          xs: "90%",
+          sm: "80%",
+          md: "70%",
+          lg: "60%",
+          xl: "50%",
+          xxl: "40%",
+        }}
+        footer= {false}
+        mask={true}
+      >
+        <div className="grid grid-cols-1 gap-4">
+          <Form
+            form={employeeForm}
+            layout="vertical"
+            onFinish={onAddEmployee}
+            className="rounded-lg p-4"
+          >
+            <div className="col-span-2 row-span-2 mb-4 bg-white shadow-lg rounded-lg">
+              <div className="flex flex-1 flex-col rounded-lg p-4">
+                <h2 className="text-xl font-bold mb-4 ml-4 mt-4">
+                  Personal Information
+                </h2>
+                {/* Personal Information */}
+                <div className="flex flex-row gap-4 ml-4">
+                  <Form.Item
+                    label="First Name"
+                    name="first_name"
+                    rules={[{ required: true }]}
+                  >
+                    <Input />
+                  </Form.Item>
+
+                  <Form.Item
+                    label="Last Name"
+                    name="last_name"
+                    rules={[{ required: true }]}
+                  >
+                    <Input />
+                  </Form.Item>
+
+                  <Form.Item label="Middle Name" name="middle_name">
+                    <Input />
+                  </Form.Item>
+
+                  <Form.Item label="Suffix" name="suffix">
+                    <Select placeholder="Suffix">
+                      <Option value="Jr">Jr.</Option>
+                      <Option value="Sr">Sr.</Option>
+                      <Option value="II">II</Option>
+                      <Option value="III">III</Option>
+                      <Option value="IV">IV</Option>
+                    </Select>
+                  </Form.Item>
+                </div>
+
+                <div className="flex flex-row gap-4 ml-4">
+                  <Form.Item
+                    label="Employee ID"
+                    name="employee_id"
+                    rules={[{ required: true }]}
+                  >
+                    <Input />
+                  </Form.Item>
+
+                  <Form.Item
+                    label="Email"
+                    name="email"
+                    rules={[{ required: true }]}
+                    className="w-69"
+                  >
+                    <Input />
+                  </Form.Item>
+
+                  <Form.Item
+                    label="Phone Number"
+                    name="phone_no"
+                    rules={[{ required: true }]}
+                  >
+                    <Input />
+                  </Form.Item>
+                </div>
+
+                <div className="flex flex-col ml-4">
+                  <div className="flex flex-row gap-4">
+                    <Form.Item
+                      label="Date of Birth"
+                      name="date_of_birth"
+                      rules={[{ required: true }]}
+                    >
+                      <DatePicker className="w-full" />
+                    </Form.Item>
+
+                    <Form.Item
+                      label="Gender"
+                      name="gender"
+                      rules={[{ required: true }]}
+                    >
+                      <Select placeholder="Select gender">
+                        <Option value="Male">Male</Option>
+                        <Option value="Female">Female</Option>
+                        <Option value="Other">LGBTQ+</Option>
+                      </Select>
+                    </Form.Item>
+
+                    <Form.Item
+                      label="Civil Status"
+                      name="civil_status"
+                      rules={[{ required: true }]}
+                    >
+                      <Select placeholder="Select civil status">
+                        <Option value="Single">Single</Option>
+                        <Option value="Married">Married</Option>
+                        <Option value="Widowed">Widowed</Option>
+                      </Select>
+                    </Form.Item>
+
+                    <Form.Item
+                      label="Educational Attainment"
+                      name="educational_attainment"
+                      rules={[{ required: true }]}
+                    >
+                      <Select placeholder="Educational Attainment">
+                        <Option value="Associate degree">
+                          Associate degree
+                        </Option>
+                        <Option value="Bachelor's degree">
+                          Bachelor's degree
+                        </Option>
+                        <Option value="Master's degree">
+                          Master's degree
+                        </Option>
+                        <Option value="PhD degree">PhD degree</Option>
+                      </Select>
+                    </Form.Item>
+                  </div>
+                  <Form.Item
+                    label="Address"
+                    name="address"
+                    rules={[{ required: true }]}
+                    className="w-md"
+                  >
+                    <Input.TextArea />
+                  </Form.Item>
+                </div>
+                
+              </div>
+            </div>
+            {/* Government IDs */}
+            <div className="col-span-2 row-start-3 mb-4 bg-white shadow-lg rounded-lg">
+              <div className="flex flex-col rounded-lg p-4 shadow-lg">
+                <h2 className="text-xl font-bold mb-2 mt-4 ml-2">
+                  Government IDs
+                </h2>
+                <div className="flex flex-row mt-6 gap-4">
+                  <Form.Item
+                    label="SSS"
+                    name="sss"
+                    rules={[{ required: true }]}
+                  >
+                    <Input />
+                  </Form.Item>
+
+                  <Form.Item
+                    label="Pag-IBIG"
+                    name="pag_ibig"
+                    rules={[{ required: true }]}
+                  >
+                    <Input />
+                  </Form.Item>
+
+                  <Form.Item
+                    label="PhilHealth"
+                    name="philhealth"
+                    rules={[{ required: true }]}
+                  >
+                    <Input />
+                  </Form.Item>
+
+                  <Form.Item
+                    label="TIN"
+                    name="tin"
+                    rules={[{ required: true }]}
+                  >
+                    <Input />
+                  </Form.Item>
+                </div>
+              </div>
+            </div>
+            {/* Work Informations */}
+            <div className="col-span-2 row-span-2 row-start-4 bg-white shadow-lg rounded-lg">
+                <div className="flex flex-col p-4 rounded-lg">
+                  <h2 className="text-xl font-bold mt-5 mb-4 ml-4">
+                    Work Information
+                  </h2>
+                  <div className="flex flex-row gap-6">
+                    <div className="flex flex-col ml-4">
+                      <div className="flex flex-row gap-4">
+                        <Form.Item
+                          label="Start Date"
+                          name="start_date"
+                          rules={[{ required: true }]}
+                        >
+                          <DatePicker className="w-full" />
+                        </Form.Item>
+
+                        <Form.Item
+                          label="Salary"
+                          name="salary"
+                          rules={[{ required: true }]}
+                        >
+                          <Input />
+                        </Form.Item>
+
+                        <Form.Item
+                          label="Shift"
+                          name="shift_id"
+                          rules={[{ required: true }]}
+                        >
+                          <Select
+                            placeholder="Select Shift"
+                            onChange={handleChange}
+                            options={shift?.map((shft: any) => ({
+                              label: shft.shift_name,
+                              value: shft.id,
+                            }))}
+                          />
+                        </Form.Item>
+
+                        <Form.Item label="Incentives" name="incentives_id" className="w-60">
+                          <Select
+                            mode="multiple"
+                            allowClear
+                            placeholder="Incentive"
+                            onChange={handleChange}
+                            options={incentives?.map((inc: any) => ({
+                              label: inc.incentive_name,
+                              value: inc.id,
+                            }))}
+                          />
+                        </Form.Item>
+                      </div>
+
+                      <div className="flex flex-row gap-4">
+                        <Form.Item
+                          label="Department"
+                          name="department_id"
+                          className="w-40"
+                          rules={[{ required: true }]}
+                        >
+                          <Select
+                            placeholder="Department"
+                            onChange={departmenthandleChange}
+                            options={departments?.map((dept: any) => ({
+                              label: dept.department_name,
+                              value: dept.id,
+                            }))}
+                          />
+                        </Form.Item>
+
+                        <Form.Item
+                          label="Position"
+                          name="position_id"
+                          className="w-40"
+                          rules={[{ required: true }]}
+                        >
+                          <Select
+                            style={{ width: "100%" }}
+                            placeholder="position"
+                            onChange={handleChange}
+                            options={filteredPositions?.map((pos: any) => ({
+                              label: pos.position_name,
+                              value: pos.id,
+                            }))}
+                          />
+                        </Form.Item>
+
+                        <Form.Item
+                          label="Career Status"
+                          name="career_status"
+                          rules={[{ required: true }]}
+                        >
+                          <Select placeholder="Select status">
+                            <Option value="Probationary">Probationay</Option>
+                            <Option value="Regular">Regular</Option>
+                            <Option value="Intern">Intern</Option>
+                            <Option value="Traine">Traine</Option>
+                          </Select>
+                        </Form.Item>
+                      </div>
+
+                      <Form.Item label="Work Days" name="work_days">
+                        <Checkbox.Group
+                          options={[
+                            { label: "Monday", value: "mon" },
+                            { label: "Tuesday", value: "tue" },
+                            { label: "Wednesday", value: "wed" },
+                            { label: "Thursday", value: "thu" },
+                            { label: "Friday", value: "fri" },
+                            { label: "Saturday", value: "sat" },
+                            { label: "Sunday", value: "sun" },
+                          ]}
+                        />
+                      </Form.Item>
+
+                      <Form.Item label="On Call Days" name="on_call_days">
+                        <Checkbox.Group
+                          options={[
+                            { label: "Monday", value: "mon" },
+                            { label: "Tuesday", value: "tue" },
+                            { label: "Wednesday", value: "wed" },
+                            { label: "Thursday", value: "thu" },
+                            { label: "Friday", value: "fri" },
+                            { label: "Saturday", value: "sat" },
+                            { label: "Sunday", value: "sun" },
+                          ]}
+                        />
+                      </Form.Item>
+
+                      <Form.Item>
+                        <Button
+                          type="primary"
+                          htmlType="submit"
+                          className="mt-5 ml-65"
+                        >
+                          Update Employee
+                        </Button>
+                      </Form.Item>
+                    </div>
+
+                  </div>
+                </div>
+
+            </div>
+          </Form>
+
+        </div>
+      </Modal>
+
       {/* Add Employee Tab */}
       {activeTab === "add" && (
         <div id="settingContent" className="tab-content mt-2 mx-8">
@@ -466,7 +834,7 @@ export default function EmployeePage() {
             onFinish={onAddEmployee}
             className="rounded-lg p-4"
           >
-            <div className="grid grid-cols-5 rounded-lg p-6 grid-rows-5 gap-4">
+            <div className="grid grid-cols-1 rounded-lg p-6 grid-rows-5 gap-4">
               <div className="col-span-4 row-span-3">
                 <div className="flex flex-row gap-5">
                   <div className="flex flex-1 flex-col rounded-lg p-4 shadow-lg bg-white ">
@@ -573,9 +941,15 @@ export default function EmployeePage() {
                           rules={[{ required: true }]}
                         >
                           <Select placeholder="Educational Attainment">
-                            <Option value="Associate degree">Associate degree</Option>
-                            <Option value="Bachelor's degree">Bachelor's degree</Option>
-                            <Option value="Master's degree">Master's degree</Option>
+                            <Option value="Associate degree">
+                              Associate degree
+                            </Option>
+                            <Option value="Bachelor's degree">
+                              Bachelor's degree
+                            </Option>
+                            <Option value="Master's degree">
+                              Master's degree
+                            </Option>
                             <Option value="PhD degree">PhD degree</Option>
                           </Select>
                         </Form.Item>
@@ -657,48 +1031,53 @@ export default function EmployeePage() {
 
                         <Form.Item
                           label="Shift"
-                          name="shift"
+                          name="shift_id"
                           rules={[{ required: true }]}
                         >
-                        <Select
-                          placeholder="Select Shift"
-                          onChange={handleChange}
-                          options={shift.map((shft: any) => ({
-                            label: shft.shift_name,
-                            value: shft.id,
-                          }))}
-                        />
+                          <Select
+                            placeholder="Select Shift"
+                            onChange={handleChange}
+                            options={shift.map((shft: any) => ({
+                              label: shft.shift_name,
+                              value: shft.id,
+                            }))}
+                          />
                         </Form.Item>
                       </div>
 
                       <div className="flex flex-row gap-4">
                         <Form.Item
                           label="Department"
-                          name="department"
+                          name="department_id"
                           className="w-40"
                           rules={[{ required: true }]}
                         >
                           <Select
-                          placeholder="Department"
-                          onChange={departmenthandleChange}
-                          options={departments.map((dept: any) => ({
-                            label: dept.department_name,
-                            value: dept.id,
-                          }))}
-                        />
+                            placeholder="Department"
+                            onChange={departmenthandleChange}
+                            options={departments.map((dept: any) => ({
+                              label: dept.department_name,
+                              value: dept.id,
+                            }))}
+                          />
                         </Form.Item>
 
-                        <Form.Item label="Position" name="position" className="w-40" rules={[{ required: true }]}>
-                        <Select
-                          style={{ width: "100%" }}
-                          placeholder="position"
-                          onChange={handleChange}
-                          options={filteredPositions.map((pos: any) => ({
-                            label: pos.position_name,
-                            value: pos.id,
-                          }))}
-                        />
-                      </Form.Item>
+                        <Form.Item
+                          label="Position"
+                          name="position_id"
+                          className="w-40"
+                          rules={[{ required: true }]}
+                        >
+                          <Select
+                            style={{ width: "100%" }}
+                            placeholder="position"
+                            onChange={handleChange}
+                            options={filteredPositions?.map((pos: any) => ({
+                              label: pos.position_name,
+                              value: pos.id,
+                            }))}
+                          />
+                        </Form.Item>
 
                         <Form.Item
                           label="Career Status"
@@ -726,14 +1105,14 @@ export default function EmployeePage() {
                     </div>
 
                     <div className="flex flex-col">
-                      <Form.Item label="Incentives" name="incentives">
+                      <Form.Item label="Incentives" name="incentives_id">
                         <Select
                           mode="multiple"
                           allowClear
                           style={{ width: "100%" }}
                           placeholder="Incentive"
                           onChange={handleChange}
-                          options={incentives.map((inc: any) => ({
+                          options={incentives?.map((inc: any) => ({
                             label: inc.incentive_name,
                             value: inc.id,
                           }))}
@@ -743,13 +1122,13 @@ export default function EmployeePage() {
                       <Form.Item label="Work Days" name="work_days">
                         <Checkbox.Group
                           options={[
-                            { label: "Monday",    value: 1 },
-                            { label: "Tuesday",   value: 2 },
-                            { label: "Wednesday", value: 3 },
-                            { label: "Thursday",  value: 4 },
-                            { label: "Friday",    value: 5 },
-                            { label: "Saturday",  value: 6 },
-                            { label: "Sunday",    value: 7 },
+                            { label: "Monday", value: "mon" },
+                            { label: "Tuesday", value: "tue" },
+                            { label: "Wednesday", value: "wed" },
+                            { label: "Thursday", value: "thu" },
+                            { label: "Friday", value: "fri" },
+                            { label: "Saturday", value: "sat" },
+                            { label: "Sunday", value: "sun" },
                           ]}
                         />
                       </Form.Item>
@@ -757,13 +1136,13 @@ export default function EmployeePage() {
                       <Form.Item label="On Call Days" name="on_call_days">
                         <Checkbox.Group
                           options={[
-                            { label: "Monday",    value: 1 },
-                            { label: "Tuesday",   value: 2 },
-                            { label: "Wednesday", value: 3 },
-                            { label: "Thursday",  value: 4 },
-                            { label: "Friday",    value: 5 },
-                            { label: "Saturday",  value: 6 },
-                            { label: "Sunday",    value: 7 },
+                            { label: "Monday", value: "mon" },
+                            { label: "Tuesday", value: "tue" },
+                            { label: "Wednesday", value: "wed" },
+                            { label: "Thursday", value: "thu" },
+                            { label: "Friday", value: "fri" },
+                            { label: "Saturday", value: "sat" },
+                            { label: "Sunday", value: "sun" },
                           ]}
                         />
                       </Form.Item>
@@ -917,14 +1296,14 @@ export default function EmployeePage() {
                       <Select placeholder="Select department">
                         {Array.isArray(departments) &&
                           departments.length === 0 && (
-                           <span>No Departments</span>
+                            <span>No Departments</span>
                           )}
                         {Array.isArray(departments) &&
                           departments.map((dept: any) => (
                             <Option key={dept.id} value={dept.department_name}>
-                                {dept.department_name}
-                              </Option>
-                        ))}
+                              {dept.department_name}
+                            </Option>
+                          ))}
                       </Select>
                     </Form.Item>
 
@@ -1062,10 +1441,7 @@ export default function EmployeePage() {
                     </div>
 
                     <div className="flex flex-row gap-6">
-                      <Form.Item
-                        label="Shift Break Start"
-                        name="break_start"
-                      >
+                      <Form.Item label="Shift Break Start" name="break_start">
                         <TimePicker value={value} onChange={onTimeChange} />
                       </Form.Item>
 

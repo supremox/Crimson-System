@@ -29,7 +29,7 @@ type FieldType = {
     event_date: string;
     event_name: string;
     event_type: string;
-    event_description?: string;
+    event_description: string;
   };
 
   const queryClient = getQueryClient()
@@ -321,7 +321,7 @@ export default function CalendarPage() {
             <label className="block mb-1 font-medium">Event Name</label>
             <Form.Item
               label="Event Name"
-              name="event"
+              name="event_name"
               rules={[
                 { required: true, message: "Please input your event name!" },
               ]}
@@ -342,10 +342,9 @@ export default function CalendarPage() {
             </div>
             <div className="mb-4">
               <label className="block mb-1 font-medium">Event Date</label>
-              <Form.Item name="date" label="Date">
+              <Form.Item name="event_date" label="Date">
                 {/* <input type="date"/> */}
                 <DatePicker
-                  name="date"
                   value={form.event_date ? dayjs(form.event_date) : undefined}
                   onChange={handleDateChange}
                   className="w-full"
@@ -356,7 +355,7 @@ export default function CalendarPage() {
           </div>
           <div>
             <label className="block mb-1 font-medium">Event Description</label>
-            <Form.Item name="description" label="Description">
+            <Form.Item name="event_description" label="Description">
               <Input />
             </Form.Item>
           </div>

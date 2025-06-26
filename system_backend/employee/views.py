@@ -1,15 +1,13 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Employee, Department, Position, Shift, Incentive, Work_days, OnCall_days
+from .models import Employee, Department, Position, Shift, Incentive
 from .serializers import ( 
     EmployeeSerializer, 
     DepartmentSerializer, 
     PositionSerializer, 
     ShiftSerializer,
     IncentiveSerializer,
-    WorkDaysSerializer,
-    OnCall_days
 )
 
 class EmployeeListCreateView(generics.ListCreateAPIView):
@@ -19,18 +17,47 @@ class EmployeeListCreateView(generics.ListCreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         print(f"Data From Front-end: {request.data}")
-        if serializer.is_valid():
+        if  serializer.is_valid():
+            print("Data Valid!")
             self.perform_create(serializer)
             return Response({
                 "message": "Employee created successfully.",
                 "employee": serializer.data
             }, status=status.HTTP_201_CREATED)
-       
+            
+        # print(serializer.errors)
         return Response({
             "message": "Employee creation failed.",
             "errors": serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
     
+class EmployeeDetailedView(generics.RetrieveUpdateAPIView):
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer
+    lookup_field = 'id'  # default, but you can customize (e.g. 'id', 'uuid')
+
+    def get(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        print(f"Update Request Data: {request.data}")
+        
+        if serializer.is_valid():
+            self.perform_update(serializer)
+            return Response({
+                "message": "Employee updated successfully.",
+                "employee": serializer.data
+            }, status=status.HTTP_200_OK)
+        
+        return Response({
+            "message": "Employee update failed.",
+            "errors": serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
 class DepartmentListCreateView(generics.ListCreateAPIView):
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer

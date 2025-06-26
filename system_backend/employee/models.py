@@ -1,5 +1,7 @@
+from django.contrib.auth import get_user_model
 from django.db import models
-from user.models import CustomUser
+
+User = get_user_model()
 
 class Shift(models.Model):
     shift_name = models.CharField(max_length=100)
@@ -12,7 +14,7 @@ class Shift(models.Model):
         return self.shift_name
         
 class Department(models.Model):
-    department_name = models.CharField(max_length=100)
+    department_name = models.CharField(max_length=100,  unique=True)
 
     def __str__(self):
         return self.department_name
@@ -31,30 +33,27 @@ class Incentive(models.Model):
     def __str__(self):
         return self.incentive_name
     
-class Work_days(models.Model):
-    monday = models.BooleanField(default=True)
-    tuesday = models.BooleanField(default=True)
-    wednesday = models.BooleanField(default=True)
-    thursday = models.BooleanField(default=True)
-    friday = models.BooleanField(default=True)
-    saturday = models.BooleanField(default=False)
-    sunday = models.BooleanField(default=False)
+class DayOfWeek(models.Model):
+    class Day_choices(models.TextChoices):
+        MONDAY    = ('mon', 'Monday')
+        TUESDAY   = ('tue', 'Tuesday')
+        WEDNESDAY = ('wed', 'Wednesday')
+        THURSDAY  = ('thu', 'Thursday')
+        FRIDAY    = ('fri', 'Friday')
+        SATURDAY  = ('sat', 'Saturday')
+        SUNDAY    = ('sun', 'Sunday')
 
-class OnCall_days(models.Model):
-    monday = models.BooleanField(default=False)
-    tuesday = models.BooleanField(default=False)
-    wednesday = models.BooleanField(default=False)
-    thursday = models.BooleanField(default=False)
-    friday = models.BooleanField(default=False)
-    saturday = models.BooleanField(default=True)
-    sunday = models.BooleanField(default=False)
+    day = models.CharField(max_length=3, choices=Day_choices, unique=True)
+
+    def __str__(self):
+        return dict(self.Day_choices).get(self.day, self.day)
 
 
     
 # Create your models here.
 class Employee(models.Model):
     avatar = models.ImageField(null=True, blank=True)
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='employee')
     employee_id = models.CharField(unique=True, max_length=10)
     date_of_birth = models.DateField()
     gender = models.CharField(max_length=100)
@@ -73,11 +72,11 @@ class Employee(models.Model):
     start_date = models.DateField()
     salary = models.CharField(max_length=100)
     shift = models.ForeignKey(Shift, on_delete=models.CASCADE)
-    department = models.ForeignKey(Department, on_delete=models.CASCADE)
-    position = models.ForeignKey(Position, on_delete=models.CASCADE)
-    incentives = models.ManyToManyField(Incentive)
-    work_days = models.ManyToManyField(Work_days)
-    on_call_days = models.ManyToManyField(OnCall_days)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='employee_department')
+    position = models.ForeignKey(Position, on_delete=models.CASCADE, related_name='employee_position')
+    incentives = models.ManyToManyField(Incentive, related_name='employee_incentives', blank=True)
+    work_days = models.ManyToManyField(DayOfWeek, related_name='employees_working')
+    on_call_days = models.ManyToManyField(DayOfWeek, related_name='employees_on_call')
     career_status = models.CharField(max_length=50)
 
     def __str__(self):

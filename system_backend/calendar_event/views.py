@@ -9,6 +9,7 @@ class CalendarEventListCreateView(generics.ListCreateAPIView):
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
+        print(f"Calendar Data: {request.data}")
         if serializer.is_valid():
             print(f"Data: {serializer.validated_data}")
             self.perform_create(serializer)
