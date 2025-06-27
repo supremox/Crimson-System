@@ -6,6 +6,7 @@ import ReactQueryProvider from "./components/ReactQueryProvider";
 import "./globals.css";
 
 import { AntdRegistry } from '@ant-design/nextjs-registry';
+import { ConfigProvider } from "antd";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,7 +35,18 @@ export default function RootLayout({
       >
         <ReactQueryProvider>
           <AntdRegistry>
+            <ConfigProvider
+              theme={{
+                components: {
+                  Table: {
+                    headerBg: '#001529',
+                    headerColor: 'white'
+                  },
+                },
+              }}
+            >
               {children}
+            </ConfigProvider>
           </AntdRegistry>
         </ReactQueryProvider>
       </body>

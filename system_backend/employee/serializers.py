@@ -59,7 +59,7 @@ class WorkingDaySerializer(serializers.ModelSerializer):
     day_display = serializers.SerializerMethodField()
     class Meta:
         model = DayOfWeek
-        fields = ['id', 'day', 'day_dispplay']
+        fields = ['id', 'day', 'day_display']
 
     def get_day_display(self, obj):
         return obj.get_day_display()
@@ -98,8 +98,8 @@ class EmployeeSerializer(serializers.ModelSerializer):
     shift = ShiftSerializer(read_only=True)
     department = DepartmentSerializer(read_only=True)
     position = PositionSerializer(read_only=True)
-    working_days_display = WorkingDaySerializer(many=True, read_only=True)
-    on_call_days_display = WorkingDaySerializer(many=True, read_only=True)
+    working_days_display = WorkingDaySerializer(source='work_days', many=True, read_only=True)
+    on_call_days_display = WorkingDaySerializer(source='on_call_days', many=True, read_only=True)
     incentives = IncentiveSerializer(many=True, read_only=True)
     
     class Meta:

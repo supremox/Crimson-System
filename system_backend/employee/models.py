@@ -46,7 +46,7 @@ class DayOfWeek(models.Model):
     day = models.CharField(max_length=3, choices=Day_choices, unique=True)
 
     def __str__(self):
-        return dict(self.Day_choices).get(self.day, self.day)
+        return self.get_day_display()
 
 
     
