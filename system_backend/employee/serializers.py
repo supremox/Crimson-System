@@ -130,12 +130,14 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         print(f"Validated_Data: {validated_data}")
+        user_pop = validated_data.pop('user')     
         user_data = {
-            "first_name" : validated_data.pop('first_name'), 
-            "last_name"  : validated_data.pop('last_name'), 
-            "middle_name": validated_data.pop('middle_name', ""), 
-            "suffix"     : validated_data.pop('suffix', ""), 
-            "email"      : validated_data.pop('email'),  
+            "first_name" : user_pop.pop('first_name'),
+            "last_name"  : user_pop.pop("last_name"),
+            "middle_name": user_pop.pop('middle_name', ""), 
+            "suffix"     : user_pop.pop('suffix', ""), 
+            "email"      : user_pop.pop('email'), 
+
         }
         working_day_codes = validated_data.pop('work_days', [])
         on_call_day_codes = validated_data.pop('on_call_days', [])
@@ -156,6 +158,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
         if User.objects.filter(email=user_data['email']).exists():
             raise serializers.ValidationError({"email": "This email is already registered."})
         
+        validated_data.update(government_ids)
         user = User.objects.create(**user_data)
         user.set_password("123")  # Set default password
         user.save()
@@ -170,5 +173,61 @@ class EmployeeSerializer(serializers.ModelSerializer):
         employee.incentives.set(incentives)
 
         return employee
+    
+    def update(self, instance, validated_data):
+        user_pop = validated_data.pop('user')     
+        user_info = {
+            "first_name" : user_pop.pop('first_name'),
+            "last_name"  : user_pop.pop("last_name"),
+            "middle_name": user_pop.pop('middle_name', ""), 
+            "suffix"     : user_pop.pop('suffix', ""), 
+            "email"      : user_pop.pop('email'), 
 
+        }
+
+        for attr, value in user_info.items():
+            setattr(instance.user, attr, value)
+        instance.user.save()
+        
+        # Handle incentives, work_days, on_call_days if present
+        incentives = validated_data.pop('incentives', None)
+        work_days = validated_data.pop('work_days', None)
+        on_call_days = validated_data.pop('on_call_days', None)
+
+        # Government IDs: only check if changed, and exclude current instance
+        gov_id_fields = ['sss', 'pag_ibig', 'philhealth', 'tin']
+        for field in gov_id_fields:
+            if field not in validated_data:
+                continue
+
+            new_value = validated_data[field]
+            current_value = getattr(instance, field)
+
+            if new_value != current_value:
+                if Employee.objects.exclude(id=instance.id).filter(**{field: new_value}).exists():
+                    raise serializers.ValidationError({field: f"This {field} is already registered."})
+            
+            setattr(instance, field, new_value)
+
+        email = user_info.get('email')
+
+        if email and email != instance.user.email:
+            if User.objects.exclude(id=instance.user.id).filter(email=email).exists():
+                raise serializers.ValidationError({"email": "This email is already registered."})
+        
+   
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        if incentives is not None:
+            instance.incentives.set(incentives)
+        if work_days is not None:
+            working_days = [DayOfWeek.objects.get_or_create(day=code)[0] for code in work_days]
+            instance.work_days.set(working_days)
+        if on_call_days is not None:
+            on_call_days_objs = [DayOfWeek.objects.get_or_create(day=code)[0] for code in on_call_days]
+            instance.on_call_days.set(on_call_days_objs)
+
+        return instance
 

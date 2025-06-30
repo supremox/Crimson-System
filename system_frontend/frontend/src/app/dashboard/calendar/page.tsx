@@ -4,6 +4,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { getQueryClient } from "@/app/components/getQueryClient"; 
 import axiosInstance from "../../../../server/instance_axios";
+import { GetCalendarEventsRecord } from "@/app/hooks/useGetCalendarEvent";
 
 import { useEffect, useState } from "react";
 import {
@@ -35,15 +36,11 @@ type FieldType = {
   const queryClient = getQueryClient()
 
 export default function CalendarPage() {
-  const { data: calendarEvent } = useQuery<{
-    count: number;
-    next: number | null;
-    previous: number | null;
-    results: CalendarEventsModel[];
-  }>({
-    queryKey: ["calendar-events"],
-    queryFn: () =>  axiosInstance.get("/calendar/event/").then(res => res.data),
-  });
+  const { useGetCalendarEvents } = GetCalendarEventsRecord();
+
+  const { data: calendarEvent } = useGetCalendarEvents()
+
+  console.log("Calendar Event", calendarEvent)
 
   const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -248,8 +245,8 @@ export default function CalendarPage() {
                 </div>
               )} */}
               {calendarEvent ? 
-              calendarEvent?.results?.length > 0 
-                ? calendarEvent?.results.map((event, idx) => (
+              calendarEvent?.length > 0 
+                ? calendarEvent?.map((event: any, idx: number) => (
                 <div
                   key={idx}
                   className="border-b pb-4 border-gray-400 border-dashed mb-4"

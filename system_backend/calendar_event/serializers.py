@@ -22,11 +22,14 @@ class LeaveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Leave
         fields = '__all__'
-        read_only_fields = ['employee']  # Prevent override from frontend
+        read_only_fields = ['employee']  
 
     def create(self, validated_data):
         request = self.context.get('request')
-        employee = Employee.objects.get(user=request.user)
+        try:
+            employee = Employee.objects.get(user=request.user)
+        except Employee.DoesNotExist:
+            raise serializers.ValidationError("No Employee record found for this user.")
         leave = Leave.objects.create(employee=employee, **validated_data)
         return leave
 

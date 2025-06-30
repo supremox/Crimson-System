@@ -85,6 +85,11 @@ export default function UpdateEmployee(props: UpdateEmployeeProps) {
         console.log(`selected ${value}`);
     };
 
+    const handleFieldsChange = (changedFields: any, allFields: any) => {
+      console.log('Changed:', changedFields);
+      // console.log('All:', allFields);
+    };
+
     const onUpdateEmployee = (values: any) => {
         const employeeformattedValues: EmployeeFieldType = {
           ...values,
@@ -95,6 +100,7 @@ export default function UpdateEmployee(props: UpdateEmployeeProps) {
             ? dayjs(values.start_date).format("YYYY-MM-DD")
             : "",
         };
+        
         console.log('Employee Data', employeeformattedValues);
         mutate_update_employee(employeeformattedValues, {
             onSuccess: (data) => {
@@ -140,6 +146,7 @@ export default function UpdateEmployee(props: UpdateEmployeeProps) {
             form={employeeForm}
             layout="vertical"
             onFinish={onUpdateEmployee}
+            onFieldsChange={handleFieldsChange}
             className="rounded-lg p-4"
           >
             <div className="col-span-2 row-span-2 mb-4 bg-white shadow-lg rounded-lg">

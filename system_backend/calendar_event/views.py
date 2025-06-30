@@ -34,7 +34,7 @@ class LeaveCreateView(generics.CreateAPIView):
     
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-
+        print(f"Leave: {request.data}")
         if serializer.is_valid():
             self.perform_create(serializer)
             return Response({
@@ -50,6 +50,11 @@ class LeaveCreateView(generics.CreateAPIView):
 class ShiftChangeCreateView(generics.CreateAPIView):
     queryset = ShiftChangeRequest.objects.all()
     serializer_class = ShiftChangeRequestSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request  # Needed for access to `request.user`
+        return context
     
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

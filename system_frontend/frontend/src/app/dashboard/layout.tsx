@@ -59,7 +59,7 @@ const items: MenuItem[] = [
     "2",
     <CalendarOutlined />
   ),
-  getItem("Attendance", "3", <ClockCircleOutlined />),
+  getItem(<Link href={"/dashboard/attendance"}>Attendance</Link>, "3", <ClockCircleOutlined />),
   getItem("Request", "sub1", <FileOutlined />, [
     getItem("Leave", "4"),
     getItem("Halfday", "5"),

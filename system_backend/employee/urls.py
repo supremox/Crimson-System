@@ -1,5 +1,8 @@
 from django.urls import path
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
+
 
 urlpatterns = [
     path('name/', views.EmployeeListCreateView.as_view()),
@@ -9,4 +12,4 @@ urlpatterns = [
     path('position/names/', views.PositionListCreateView.as_view()),
     path('shifts/names/', views.ShiftListCreateView.as_view()),
     path('incentives/name/', views.IncentiveListCreateView.as_view()),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

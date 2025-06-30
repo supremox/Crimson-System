@@ -14,6 +14,23 @@ class EmployeeListCreateView(generics.ListCreateAPIView):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
 
+    def get(self, request, *args, **kwargs):
+        employees = self.get_queryset().select_related('user', 'department', 'position')
+        data = []
+        for emp in employees:
+            data.append({
+                "id": emp.id,
+                "employee_id": emp.employee_id,
+                "first_name": emp.user.first_name if emp.user else "",
+                "last_name": emp.user.last_name if emp.user else "",
+                "email": emp.user.email if emp.user else "",
+                "department": emp.department.department_name if emp.department else "",
+                "position": emp.position.position_name if emp.position else "",
+                "career_status": emp.career_status,
+                "avatar": request.build_absolute_uri(emp.avatar.url) if emp.avatar else '/media/avatar/default_avatar.png',
+            })
+        return Response(data, status=status.HTTP_200_OK)
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         print(f"Data From Front-end: {request.data}")
@@ -49,11 +66,11 @@ class EmployeeDetailedView(generics.RetrieveUpdateAPIView):
         
         if serializer.is_valid():
             print("Valid Update!")
-            # self.perform_update(serializer)
+            self.perform_update(serializer)
             return Response({
                 "message": "Employee updated successfully.",
                 "employee": serializer.data
-            }, status=status.HTTP_200_OK)
+            }, status=status.HTTP_201_CREATED)
         
         return Response({
             "message": "Employee update failed.",

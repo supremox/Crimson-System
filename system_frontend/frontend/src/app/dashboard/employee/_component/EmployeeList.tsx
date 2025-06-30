@@ -1,20 +1,28 @@
 import React from 'react'
-import { Space, Table, Tag } from 'antd';
-import type { TableProps } from 'antd';
+import { Space, Table, Tag, Avatar } from 'antd';
+import type { TableProps} from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { GetEmployeesRecord } from '@/app/hooks/useGetEmployeesRecord';
 import UpdateEmployee from './UpdateEmployee';
+import { EditOutlined } from '@ant-design/icons';
 
 const columns: TableProps['columns'] = [
   {
-    title: 'Employee ID',
-    dataIndex: 'employee_id',
-    render: (text) => <a>{text}</a>,
-  },
-  {
-    title: 'Name',
+    title: 'Employee',
     // dataIndex: ['first_name', 'last_name'],
-    render: (_, row) => <span>{row.first_name} {row.last_name}</span> 
+    render: (_, row) => 
+    <span className='flex flex-row items-center gap-3'> 
+      <Avatar
+        size={{ xs: 24, sm: 32, md: 40, lg: 40, xl: 40, xxl: 40 }}
+        src={row.avatar}
+        alt="avatar"
+        onError={() => true}
+      />
+      <span className='flex flex-col'>
+        <span className='text-gray-500'>{row.employee_id}</span>
+        <span>{row.first_name} {row.last_name}</span>
+      </span>
+    </span> 
   },
   {
     title: 'Email',
@@ -24,13 +32,38 @@ const columns: TableProps['columns'] = [
   {
     title: 'Department',
     // dataIndex: 'department.department_name',
-    render: (_, row) => <span>{row.department.department_name}</span> 
+    render: (_, row) => <span>{row.department}</span> 
 
 
   },
   {
     title: 'Position',
-    render: (_, row) => <span>{row.position.position_name}</span> 
+    render: (_, row) => <span>{row.position}</span> 
+  },
+  {
+    title: 'Career Status',
+    render: (_, row) => {
+      const statusColorMap: Record<string, string> = {
+        Probationary: 'bg-yellow-500',
+        Intern: 'bg-blue-500',
+        Regular: 'bg-green-600',
+      };
+      const bgColor = statusColorMap[row.career_status] || 'bg-gray-400';
+
+      return (
+        <span
+          className={`${bgColor} flex items-center justify-center mx-auto`}
+          style={{
+            height: "30px",
+            width: "110px",
+            borderRadius: "20px",
+            color: "white",
+          }}
+        >
+          {row.career_status || "-"}
+        </span>
+      );
+    }
   },
   {
     title: 'Action',
@@ -48,6 +81,6 @@ export default function EmployeeList() {
   const {data: employee, isLoading} = useGetEmployees()
 
   return (
-    <Table columns={columns} dataSource={employee} loading={isLoading} rowKey={row => row.id} className='mt-6 mx-6 '/>
+    <Table columns={columns} dataSource={employee} loading={isLoading} rowKey={row => row.id} className='mt-6 mx-6 shadow-lg '/>
   )
 }

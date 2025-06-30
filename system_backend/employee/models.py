@@ -52,7 +52,12 @@ class DayOfWeek(models.Model):
     
 # Create your models here.
 class Employee(models.Model):
-    avatar = models.ImageField(null=True, blank=True)
+    avatar = models.ImageField(
+        upload_to='avatar/',
+        null=True,
+        blank=True,
+        default='avatar/default_avatar.png'  
+    )
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='employee')
     employee_id = models.CharField(unique=True, max_length=10)
     date_of_birth = models.DateField()
