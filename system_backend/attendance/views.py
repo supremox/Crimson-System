@@ -38,20 +38,16 @@ class AttendanceAPIView(generics.ListAPIView):
                     'employee_id': emp_id,
                     'employee_name': record['employee_name'],
                     'avatar': record['avatar'],
-                    'attendance': {
-                        'date': record['date'],
-                        'time_in': record['time_in'],
-                        'time_out': record['time_out'],
-                        'status': record['status'],
-                    }
+                    'attendance': []
                 }
-            employees[emp_id][record['atte']] = {
+            employees[emp_id]['attendance'].append({
+                'date': record['date'],
                 'time_in': record['time_in'],
                 'time_out': record['time_out'],
                 'status': record['status'],
-            }
-        print(list(employees.values()))
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            })
+        # print(list(employees.values()))
+        return Response(list(employees.values()), status=status.HTTP_200_OK)
     
 
 
