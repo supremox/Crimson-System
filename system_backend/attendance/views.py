@@ -1,5 +1,4 @@
-from rest_framework.views import APIView
-from rest_framework import generics
+from rest_framework import generics, views
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
@@ -11,10 +10,10 @@ from django.core.mail import EmailMessage
 
 from employee.models import Employee
 from user.models import CustomUser
-from calendar_event.models import ShiftChangeRequest
+from calendar_event.models import ShiftChangeRequest, Leave
 
 from .models import Attendance
-from .serializers import AttendanceSerializer, FileUploadSerializer
+from .serializers import AttendanceSerializer, FileUploadSerializer, AttendanceQuerySerializer
 from .utils import AttendanceCalculation
 from .utils import ExcelReportWriter
 # from export.pdf  import WriteToPdf 
@@ -29,7 +28,7 @@ class AttendanceAPIView(generics.ListAPIView):
     def get(self, request, format=None):
         attendances = self.get_queryset()
         serializer = self.get_serializer(attendances, many=True)
-
+        # print(f"Serializer Data: {serializer.data}")
         employees = {}
         for record in serializer.data:
             emp_id = record['employee_id']
@@ -50,65 +49,23 @@ class AttendanceAPIView(generics.ListAPIView):
         return Response(list(employees.values()), status=status.HTTP_200_OK)
     
 
+class AttendanceRetrieveAPIView(views.APIView):
+    def get(self, request, employee_id, date, *args, **kwargs):
+        try:
+            attendance = Attendance.objects.select_related('employee__user').get(
+                employee__employee_id=employee_id,
+                date=date
+            )
+        except Attendance.DoesNotExist:
+            return Response(
+                {"error": "Attendance record not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
-# class AttendanceAPIView(generics.ListAPIView):
-#     # permission_classes = [IsAuthenticated]
-
-#     def get(self, request, format=None):
-#         attendances = Attendance.objects.select_related('employee__user').all()
-#         serializer = AttendanceSerializer(attendances, many=True)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
-
-#     def post(self, request, format=None):
-#         attendances = Attendance.objects.select_related('employee__user').all()
-
-#         action_map = {
-#             'excel': self._handle_excel,
-#             # 'pdf': self._handle_pdf,
-#             'sendmail': self._handle_sendmail,
-#         }
-
-#         for key, handler in action_map.items():
-#             if request.data.get(key):
-#                 return handler(attendances)
-
-#         return Response({"error": "Invalid action."}, status=status.HTTP_400_BAD_REQUEST)
-
-#     def _handle_excel(self, data):
-#         xlsx_data = ExcelReportWriter(data)
-#         response = HttpResponse(
-#             xlsx_data,
-#             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-#         )
-#         response['Content-Disposition'] = 'attachment; filename=Weekly_Report.xlsx'
-#         return response
-
-#     # def _handle_pdf(self, data):
-#     #     pdf_data = WriteToPdf(data)
-#     #     response = HttpResponse(
-#     #         pdf_data,
-#     #         content_type='application/pdf'
-#     #     )
-#     #     response['Content-Disposition'] = 'attachment; filename=Weekly_Report.pdf'
-#     #     return response
-
-#     def _handle_sendmail(self, data):
-#         xlsx_data = ExcelReportWriter(data)
-#         email = EmailMessage(
-#             subject="Weekly Report for testing",
-#             body="Dear testing,\n\nAttached is the weekly report for your department.",
-#             from_email='hello@demomailtrap.co',
-#             to=["vincentcarlcalidguid@gmail.com"],
-#         )
-#         email.attach(
-#             "Weekly_Report.xlsx",
-#             xlsx_data,
-#             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-#         )
-#         email.send()
-#         return Response({"message": "Email sent successfully!"}, status=status.HTTP_200_OK)
+        serializer = AttendanceSerializer(attendance)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
-class AttendanceImportAPIView(APIView):
+class AttendanceImportAPIView(views.APIView):
     parser_classes = [MultiPartParser, FormParser]
     # permission_classes = [permissions.IsAuthenticated]
 
@@ -134,7 +91,37 @@ class AttendanceImportAPIView(APIView):
                 continue
 
             for date in df.columns[1:]:
+                employees = Employee.objects.filter(employee_id=row['Staff Code'])
+                if not employees.exists():
+                    continue
+
+                employee_instance = employees.get()
+
+
                 if row[date] == "":
+                    # Check if employee is on leave for this date
+                    leave_date =  dt.datetime.strptime(date + "-" + str(year), "%m-%d-%Y").date()
+                    leave_request = Leave.objects.filter(
+                        employee=employee_instance,
+                        leave_status="Approve",
+                        leave_start_date=leave_date,
+                        leave_end_date=leave_date
+                    ).first()
+
+                    if leave_request:
+                        attendance_objects.append(Attendance(
+                            employee=employee_instance,
+                            date=leave_date,
+                            time_in=dt.time(0, 0, 0),
+                            time_out=dt.time(0, 0, 0),
+                            late="00:00",
+                            undertime="00:00",
+                            overtime="00:00",
+                            status=leave_request.leave_type
+                        ))
+                        continue
+
+                    print(f"Checking leave for {employee_instance} on {leave_date}: {leave_request}")
                     continue
 
                 try:
@@ -143,12 +130,6 @@ class AttendanceImportAPIView(APIView):
                     time_out = dt.datetime.strptime(row[date][-5:], "%H:%M").time()
                 except Exception:
                     continue
-
-                employees = Employee.objects.filter(employee_id=row['Staff Code'])
-                if not employees.exists():
-                    continue
-
-                employee_instance = employees.get()
 
                 shift_request = ShiftChangeRequest.objects.filter(
                     employee=employee_instance,

@@ -87,3 +87,19 @@ class Employee(models.Model):
     def __str__(self):
         return self.employee_id
     
+class EmployeeYearlySchedule(models.Model):
+    class Work_Choices(models.TextChoices):
+        WORK    = ('work', 'Work Days')
+        ON_CALL   = ('on_call', 'On Call Days')
+        REST = ('rest', 'Rest Day')
+
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='yearly_schedules')
+    year = models.IntegerField()
+    month = models.IntegerField()
+    date = models.DateField()
+    type = models.CharField(max_length=10, choices=Work_Choices)
+
+    class Meta:
+        unique_together = ('employee', 'date')
+        ordering = ['date']
+    

@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 from datetime import timedelta
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -57,8 +58,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework_simplejwt.token_blacklist',
     'drf_yasg',
-
-    
+    'django_celery_beat',
+  
 ]
 
 SWAGGER_SETTINGS = {
@@ -203,3 +204,10 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://192.168.0.114:3000", 
 ]
+
+CELERY_BEAT_SCHEDULE = {
+    'regenerate-employee-schedules-yearly': {
+        'task': 'employees.tasks.regenerate_all_employee_schedules',
+        'schedule': crontab(minute=0, hour=0, day_of_month=1, month_of_year=1),  # January 1 at 00:00
+    },
+}

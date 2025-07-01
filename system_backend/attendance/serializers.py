@@ -18,6 +18,9 @@ class AttendanceSerializer(serializers.ModelSerializer):
             'avatar',
             'time_in',
             'time_out',
+            'late',
+            'undertime',
+            'overtime',
             'status',
         ]
 
@@ -33,6 +36,10 @@ class AttendanceSerializer(serializers.ModelSerializer):
         if obj.employee and obj.employee.user:
             return f"{obj.employee.user.first_name} {obj.employee.user.last_name}"
         return None
+    
+class AttendanceQuerySerializer(serializers.Serializer):
+    employee_id = serializers.CharField(required=True)
+    date = serializers.DateField(required=True)
 
 class FileUploadSerializer(serializers.Serializer):
     file_upload = serializers.FileField()

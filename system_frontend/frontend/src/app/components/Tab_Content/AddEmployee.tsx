@@ -93,7 +93,7 @@ export default function AddEmployee() {
         // console.log(`selected ${value}`);
         setSelectedDepartment(value);
         // Optionally reset position field in the form
-        employeeForm.setFieldsValue({ position: undefined });
+        employeeForm.setFieldsValue({ position_id: undefined });
     };
 
      // Fetch shift data from backend
@@ -335,7 +335,7 @@ export default function AddEmployee() {
                                         <Select
                                             placeholder="Department"
                                             onChange={departmenthandleChange}
-                                            options={departments.map((dept: any) => ({
+                                            options={departments?.map((dept: any) => ({
                                             label: dept.department_name,
                                             value: dept.id,
                                             }))}

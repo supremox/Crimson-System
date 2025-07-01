@@ -11,8 +11,18 @@ const useGetAttendance = () => {
   });
 }
 
+const useGetDayRecord = (selectedDay: string | null, employee_id: string) => {
+    return useQuery({
+        queryKey: ['department-position', { day: selectedDay, emp: employee_id }],
+        queryFn: () => 
+            fetcher(`/attendance/day/record/${employee_id}/${selectedDay}`),
+        enabled: !!selectedDay // false
+    })
+}
+
 export const GetAttendanceRecord = () => {
     return {
-        useGetAttendance
+        useGetAttendance,
+        useGetDayRecord
     }
 }

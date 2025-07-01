@@ -11,6 +11,10 @@ from .models import (
 )
 from user.models import CustomUser
 
+from employee.utils import generate_day_schedule
+from datetime import date
+from .utils import generate_and_store_yearly_schedule
+
 User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
@@ -101,7 +105,9 @@ class EmployeeSerializer(serializers.ModelSerializer):
     working_days_display = WorkingDaySerializer(source='work_days', many=True, read_only=True)
     on_call_days_display = WorkingDaySerializer(source='on_call_days', many=True, read_only=True)
     incentives = IncentiveSerializer(many=True, read_only=True)
-    
+
+    yearly_schedule = serializers.SerializerMethodField()
+
     class Meta:
         model = Employee
         fields = [
@@ -123,10 +129,20 @@ class EmployeeSerializer(serializers.ModelSerializer):
             'department', 'department_id',
             'position', 'position_id',
             'incentives', 'incentives_id',
-            'work_days', 'on_call_days', 
-            'working_days_display', 'on_call_days_display',
+            'work_days', 'on_call_days',
+            'working_days_display', 'on_call_days_display', 'yearly_schedule',
             'career_status'
         ]
+
+    def get_yearly_schedule(self, obj):
+        year = date.today().year
+        work_days = list(obj.work_days.values_list('day', flat=True))
+        on_call_days = list(obj.on_call_days.values_list('day', flat=True))
+        yearly = {}
+        for month in range(1, 13):
+            yearly[f"{year}-{month:02d}"] = generate_day_schedule(year, month, work_days, on_call_days)
+
+        return yearly
 
     def create(self, validated_data):
         print(f"Validated_Data: {validated_data}")
@@ -171,6 +187,8 @@ class EmployeeSerializer(serializers.ModelSerializer):
         employee.work_days.set(working_days)
         employee.on_call_days.set(on_call_days)
         employee.incentives.set(incentives)
+
+        generate_and_store_yearly_schedule(employee)
 
         return employee
     
@@ -228,6 +246,8 @@ class EmployeeSerializer(serializers.ModelSerializer):
         if on_call_days is not None:
             on_call_days_objs = [DayOfWeek.objects.get_or_create(day=code)[0] for code in on_call_days]
             instance.on_call_days.set(on_call_days_objs)
+
+        generate_and_store_yearly_schedule(instance)
 
         return instance
 

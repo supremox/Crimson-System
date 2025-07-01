@@ -40,7 +40,8 @@ export default function RootLayout({
                 components: {
                   Table: {
                     headerBg: '#001529',
-                    headerColor: 'white'
+                    headerColor: 'white',
+                    fontSize: 12
                   },
                 },
               }}
