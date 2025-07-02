@@ -21,6 +21,7 @@ class AttendanceSerializer(serializers.ModelSerializer):
             'late',
             'undertime',
             'overtime',
+            'total_hours_worked',
             'status',
         ]
 

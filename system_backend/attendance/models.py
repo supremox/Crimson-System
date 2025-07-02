@@ -7,6 +7,7 @@ class Attendance(models.Model):
     date = models.DateField()
     time_in = models.TimeField()
     time_out = models.TimeField()
+    total_hours_worked = models.CharField(max_length=10, default="8")
     late = models.CharField(max_length=10)
     undertime = models.CharField(max_length=10)
     overtime = models.CharField(max_length=10)

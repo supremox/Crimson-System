@@ -123,7 +123,7 @@ export default function UpdateEmployee(props: UpdateEmployeeProps) {
   return (
     <>
       <Button size="small" type="primary" onClick={() => setOpenResponsive(true)}>
-        edit
+        Update
       </Button>
       <Modal
         closable={{ "aria-label": "Custom Close Button" }}

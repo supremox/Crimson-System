@@ -41,6 +41,10 @@ export default function DayAttendance({ emp_id, day, children }: DayAttendancePr
                 {attendance?.overtime}
             </div>
             <div className="flex flex-col border-b-3 border-indigo-500">
+                <span className="text-gray-500 text-xs mt-1">Total Worked hrs</span>
+                {attendance?.total_hours_worked}
+            </div>
+            <div className="flex flex-col border-b-3 border-indigo-500">
                 <span className="text-gray-500 text-xs mt-1">Status</span>
                 {attendance?.status}
             </div>

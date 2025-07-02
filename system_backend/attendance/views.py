@@ -8,9 +8,9 @@ from django.http import HttpResponse
 from django.core.mail import EmailMessage
 
 
-from employee.models import Employee
+from employee.models import Employee, EmployeeYearlySchedule
 from user.models import CustomUser
-from calendar_event.models import ShiftChangeRequest, Leave
+from calendar_event.models import ShiftChangeRequest, Leave, CalendarEvent
 
 from .models import Attendance
 from .serializers import AttendanceSerializer, FileUploadSerializer, AttendanceQuerySerializer
@@ -65,6 +65,51 @@ class AttendanceRetrieveAPIView(views.APIView):
         serializer = AttendanceSerializer(attendance)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
+
+class AttendancefilterRetrieveAPIView(views.APIView):
+    def post(self, request, *args, **kwargs):
+        start_date = request.data.get("start_date")
+        end_date = request.data.get("end_date")
+        print(f"Start date: {start_date}  End Date: {end_date}")
+
+        if not start_date or not end_date:
+            return Response(
+                {"error": "start_date and end_date are required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        attendances = Attendance.objects.select_related('employee__user').filter(
+            date__gte=start_date,
+            date__lte=end_date
+        )
+
+        if not attendances.exists():
+            return Response(
+                {"error": "No attendance records found for the given date range."},
+                status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = AttendanceSerializer(attendances, many=True)
+        employees = {}
+        for record in serializer.data:
+            emp_id = record['employee_id']
+            if emp_id not in employees:
+                employees[emp_id] = {
+                    'employee_id': emp_id,
+                    'employee_name': record['employee_name'],
+                    'avatar': record['avatar'],
+                    'attendance': []
+                }
+            employees[emp_id]['attendance'].append({
+                'date': record['date'],
+                'time_in': record['time_in'],
+                'time_out': record['time_out'],
+                'total_hours_worked': record['total_hours_worked'],
+                'status': record['status'],
+            })
+        return Response(list(employees.values()), status=status.HTTP_200_OK)
+
+
+    
 class AttendanceImportAPIView(views.APIView):
     parser_classes = [MultiPartParser, FormParser]
     # permission_classes = [permissions.IsAuthenticated]
@@ -99,29 +144,91 @@ class AttendanceImportAPIView(views.APIView):
 
 
                 if row[date] == "":
-                    # Check if employee is on leave for this date
-                    leave_date =  dt.datetime.strptime(date + "-" + str(year), "%m-%d-%Y").date()
-                    leave_request = Leave.objects.filter(
+                    # Check if employee is schedule for this date
+                    check_date =  dt.datetime.strptime(date + "-" + str(year), "%m-%d-%Y").date()
+                    
+                    yearly_schedule = EmployeeYearlySchedule.objects.filter(
                         employee=employee_instance,
-                        leave_status="Approve",
-                        leave_start_date=leave_date,
-                        leave_end_date=leave_date
+                        date=check_date,
                     ).first()
 
-                    if leave_request:
+                    if yearly_schedule.type == "work":
+
+                        # Check if the date is a Holiday
+                        is_holiday = CalendarEvent.objects.filter(
+                            event_date=check_date,
+                        ).exists()
+
+                        if is_holiday:
+                            attendance_objects.append(Attendance(
+                                employee=employee_instance,
+                                date=check_date,
+                                time_in=dt.time(0, 0, 0),
+                                time_out=dt.time(0, 0, 0),
+                                late="00:00",
+                                undertime="00:00",
+                                overtime="00:00",
+                                status="Holiday"
+                            ))
+                            continue
+
+                        leave_request = Leave.objects.filter(
+                            employee=employee_instance,
+                            leave_status="Approve",
+                            leave_start_date=check_date,
+                            leave_end_date=check_date
+                        ).first()
+
+                        if leave_request:
+                            attendance_objects.append(Attendance(
+                                employee=employee_instance,
+                                date=check_date,
+                                time_in=dt.time(0, 0, 0),
+                                time_out=dt.time(0, 0, 0),
+                                late="00:00",
+                                undertime="00:00",
+                                overtime="00:00",
+                                status=leave_request.leave_type
+                            ))
+                            continue
+
                         attendance_objects.append(Attendance(
                             employee=employee_instance,
-                            date=leave_date,
+                            date=check_date,
                             time_in=dt.time(0, 0, 0),
                             time_out=dt.time(0, 0, 0),
                             late="00:00",
                             undertime="00:00",
                             overtime="00:00",
-                            status=leave_request.leave_type
+                            status="Absent"
                         ))
-                        continue
 
-                    print(f"Checking leave for {employee_instance} on {leave_date}: {leave_request}")
+                        print(f"Checking leave for {employee_instance} on {check_date}: {leave_request}")
+                        
+                    if yearly_schedule.type == "on_call":
+                        attendance_objects.append(Attendance(
+                            employee=employee_instance,
+                            date=check_date,
+                            time_in=dt.time(0, 0, 0),
+                            time_out=dt.time(0, 0, 0),
+                            late="00:00",
+                            undertime="00:00",
+                            overtime="00:00",
+                            status="On-Call"
+                        ))
+
+                    if yearly_schedule.type == "rest":
+                        attendance_objects.append(Attendance(
+                            employee=employee_instance,
+                            date=check_date,
+                            time_in=dt.time(0, 0, 0),
+                            time_out=dt.time(0, 0, 0),
+                            late="00:00",
+                            undertime="00:00",
+                            overtime="00:00",
+                            status="Rest Day"
+                        ))
+
                     continue
 
                 try:
@@ -154,6 +261,7 @@ class AttendanceImportAPIView(views.APIView):
                 late = f"{calc['late']['hours']}:{calc['late']['minutes']:02}"
                 undertime = f"{calc['undertime']['hours']}:{calc['undertime']['minutes']:02}"
                 overtime = f"{calc['overtime']['hours']}:{calc['overtime']['minutes']:02}"
+                total_work_hours = f"{calc['total_work_hours']['hours']}:{calc['total_work_hours']['minutes']:02}"
                 status_label = calc['late']['status']
 
                 attendance_objects.append(Attendance(
@@ -164,6 +272,7 @@ class AttendanceImportAPIView(views.APIView):
                     late=late,
                     undertime=undertime,
                     overtime=overtime,
+                    total_hours_worked=total_work_hours,
                     status=status_label
                 ))
 

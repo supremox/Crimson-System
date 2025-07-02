@@ -37,10 +37,10 @@ class EmployeeListCreateView(generics.ListCreateAPIView):
         if  serializer.is_valid():
             print("Data Valid!")
             self.perform_create(serializer)
-            print(f"Serializer Data: {serializer.data}")
+            # print(f"Serializer Data: {serializer.data}")
             return Response({
                 "message": "Employee created successfully.",
-                "employee": serializer.data
+                # "employee": serializer.data
             }, status=status.HTTP_201_CREATED)
             
         # print(serializer.errors)

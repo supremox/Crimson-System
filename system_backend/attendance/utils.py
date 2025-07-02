@@ -34,7 +34,8 @@ class AttendanceCalculation:
         return {
             'late': AttendanceCalculation.calculate_late(time_in_dt, shift_start_dt, break_start_dt, break_end_dt),
             'undertime': AttendanceCalculation.calculate_undertime(time_out_dt, shift_end_dt),
-            'overtime': AttendanceCalculation.calculate_overtime(time_out_dt, shift_end_dt)
+            'overtime': AttendanceCalculation.calculate_overtime(time_out_dt, shift_end_dt),
+            'total_work_hours': AttendanceCalculation.calculate_total_work_hours(time_in_dt, time_out_dt, break_start_dt, break_end_dt, shift_end_dt, shift_start_dt)
         }
 
     @staticmethod
@@ -74,6 +75,34 @@ class AttendanceCalculation:
 
         overtime_duration = time_out_dt - shift_end_dt
         total_minutes = overtime_duration.total_seconds() // 60
+        return {
+            'hours': int(total_minutes // 60),
+            'minutes': int(total_minutes % 60)
+        }
+    
+    @staticmethod
+    def calculate_total_work_hours(time_in_dt, time_out_dt, break_start_dt, break_end_dt, shift_end_dt, shift_start_dt):
+        """
+        Returns total hours worked (excluding overtime and break).
+        If employee worked overtime, only count up to shift_end_dt.
+        """
+        # Only count up to shift_end_dt (exclude overtime)
+        actual_end = min(time_out_dt, shift_end_dt)
+        # Subtract break time if it falls within work period
+        if time_in_dt <= shift_start_dt:
+            work_duration = actual_end - shift_start_dt
+
+        work_duration = actual_end - time_in_dt
+        break_duration = dt.timedelta(0)
+        # If break is within work period, subtract it
+        if break_start_dt < actual_end and break_end_dt > time_in_dt:
+            # Calculate overlap between work period and break
+            break_start = max(break_start_dt, time_in_dt)
+            break_end = min(break_end_dt, actual_end)
+            if break_end > break_start:
+                break_duration = break_end - break_start
+        net_work_duration = work_duration - break_duration
+        total_minutes = net_work_duration.total_seconds() // 60
         return {
             'hours': int(total_minutes // 60),
             'minutes': int(total_minutes % 60)

@@ -82,6 +82,8 @@ class Employee(models.Model):
     incentives = models.ManyToManyField(Incentive, related_name='employee_incentives', blank=True)
     work_days = models.ManyToManyField(DayOfWeek, related_name='employees_working')
     on_call_days = models.ManyToManyField(DayOfWeek, related_name='employees_on_call')
+    total_working_days = models.CharField(max_length=100)
+    total_duty_hrs = models.CharField(max_length=100)
     career_status = models.CharField(max_length=50)
 
     def __str__(self):
