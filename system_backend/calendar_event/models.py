@@ -55,3 +55,18 @@ class ShiftChangeRequest(models.Model):
 
     def __str__(self):
         return self.shift_type
+    
+class Overtime(models.Model):
+    class Overtime_Status_Choices(models.TextChoices):
+        PENDING = "Pending"
+        APPROVE = "Approve"
+        REJECTED = "Rejected"
+
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='overtime')
+    overtime_start_time = models.TimeField()
+    overtime_end_time = models.TimeField()
+    overtime_description = models.CharField(max_length=255)
+    overtime_status = models.CharField(max_length=100, choices=Overtime_Status_Choices, default=Overtime_Status_Choices.PENDING)
+
+    def __str__(self):
+        return self.leave_type

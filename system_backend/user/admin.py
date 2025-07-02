@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from .models import CustomUser
 from employee.models import Employee, EmployeeYearlySchedule
-from calendar_event.models import CalendarEvent , Leave, ShiftChangeRequest
+from calendar_event.models import CalendarEvent , Leave, ShiftChangeRequest, Overtime
 from attendance.models import Attendance
 
 class EmployeeYearlyScheduleInline(admin.TabularInline):
@@ -30,4 +30,4 @@ admin.site.register(CalendarEvent)
 admin.site.register(Leave)
 admin.site.register(ShiftChangeRequest)
 admin.site.register(Attendance)
-# admin.site.register(EmployeeYearlySchedule)
+admin.site.register(Overtime)
