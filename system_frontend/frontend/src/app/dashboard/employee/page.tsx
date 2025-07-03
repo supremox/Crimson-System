@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import AddEmployee from "@/app/components/Tab_Content/AddEmployee";
-import EmployeeList from "./_component/EmployeeList";
-import DepartmentPosition from "@/app/components/Tab_Content/DepartmentPosition";
-import ShiftCreate from "@/app/components/Tab_Content/ShiftCreate";
-import IncetiveCreate from "@/app/components/Tab_Content/IncetiveCreate";
-
+import AddEmployee from "./_component/Tab_Content/AddEmployee";
+import EmployeeList from "./_component/Tab_Content/EmployeeList";
+import ShiftCreate from "./_component/Tab_Content/ShiftCreate";
+import IncetiveCreate from "./_component/Tab_Content/IncetiveCreate";
+import DepartmentPositionList from "./_component/Tab_Content/DepartmentPositionList";
+import ShiftList from "./_component/Tab_Content/ShiftList";
+import IncentiveList from "./_component/Tab_Content/IncentiveList";
 
 export default function EmployeePage() {
   const [activeTab, setActiveTab] = useState<
@@ -88,17 +89,17 @@ export default function EmployeePage() {
 
       {/* Add Department and Position Tab */}
       {activeTab === "department_and_position" && (
-        <DepartmentPosition/>
+        <DepartmentPositionList/>
       )}
 
       {/* Add Shift Tab */}
       {activeTab === "shift" && (
-        <ShiftCreate/>
+        <ShiftList/>
       )}
 
       {/* Add incentive Tab */}
       {activeTab === "incentive" && (
-       <IncetiveCreate/>
+       <IncentiveList/>
       )}
     </div>
   );

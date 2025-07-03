@@ -3,7 +3,7 @@ import { Space, Table, Tag, Avatar } from 'antd';
 import type { TableProps} from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { GetEmployeesRecord } from '@/app/hooks/useGetEmployeesRecord';
-import UpdateEmployee from './UpdateEmployee';
+import UpdateEmployee from '../Modal/UpdateEmployee';
 import { EditOutlined } from '@ant-design/icons';
 
 const columns: TableProps['columns'] = [
@@ -81,6 +81,12 @@ export default function EmployeeList() {
   const {data: employee, isLoading} = useGetEmployees()
 
   return (
-    <Table columns={columns} dataSource={employee} loading={isLoading} rowKey={row => row.id} className='mt-6 mx-6 shadow-lg '/>
+    <>
+      <div className="flex flex-col mt-4 rounded-lg p-4 shadow-lg bg-white">
+          <h2 className="text-xl font-bold mb-4 ml-2 mt-1">List of Employees</h2>
+          <Table columns={columns} dataSource={employee} loading={isLoading} rowKey={row => row.id} className='shadow-lg '/>
+      </div>
+    </>
+     
   )
 }

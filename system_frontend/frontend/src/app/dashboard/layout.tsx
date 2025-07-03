@@ -56,13 +56,14 @@ const items: MenuItem[] = [
   getItem(<Link href={"/dashboard"}>Dashboard</Link>, "1", <HomeOutlined />),
   getItem(<Link href={"/dashboard/calendar"}>Calendar</Link>,"2",<CalendarOutlined />),
   getItem(<Link href={"/dashboard/attendance"}>Attendance</Link>, "3", <ClockCircleOutlined />),
-  getItem("Request", "sub1", <FileOutlined />, [
-    getItem("Leave", "4"),
-    getItem("Halfday", "5"),
-    getItem("Cash", "6"),
+  getItem("Forms", "sub1", <FileOutlined />, [
+    getItem(<Link href={"/dashboard/leave"}>Leave</Link>, "4"),
+    getItem(<Link href={"/dashboard/shiftchange"}>Shift Change</Link>, "5"),
+    getItem(<Link href={"/dashboard/overtime"}>Over-Time</Link>, "6"),
+    getItem(<Link href={"/dashboard/cashadvance"}>Cash Advance</Link>, "7"),
   ]),
-  getItem(<Link href={"/dashboard/payroll"}>Payroll</Link>, "7", <WalletOutlined />),
-  getItem(<Link href={"/dashboard/employee"}>Management</Link>,"8",<UserOutlined />),
+  getItem(<Link href={"/dashboard/payroll"}>Payroll</Link>, "8", <WalletOutlined />),
+  getItem(<Link href={"/dashboard/employee"}>Management</Link>,"9",<UserOutlined />),
 ];
 
 const profileMenuItems = [

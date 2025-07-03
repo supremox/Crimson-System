@@ -2,9 +2,9 @@ import { GetEmployeesRecord } from '@/app/hooks/useGetEmployeesRecord';
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
 import { Button, Form, Input } from 'antd'
 import React from 'react'
-import { getQueryClient } from '../getQueryClient';
+import { getQueryClient } from '@/app/components/getQueryClient'; 
 import { useMutation } from '@tanstack/react-query';
-import axiosInstance from '../../../../server/instance_axios';
+import axiosInstance from '../../../../../../server/instance_axios';
 
 type IncentiveFieldType = {
   incentive_name: string;

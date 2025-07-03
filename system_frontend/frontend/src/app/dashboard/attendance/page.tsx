@@ -6,11 +6,12 @@ import type { TableColumnsType } from "antd";
 import { createStyles } from "antd-style";
 import { GetAttendanceRecord } from "@/app/hooks/useGetAttendance";
 import { FilterOutlined, FolderViewOutlined, SearchOutlined, UploadOutlined } from "@ant-design/icons";
-import DayAttendance from "./Modals/DayAttendance";
+import DayAttendance from "./_component/Modals/DayAttendance";
 import axiosInstance from "../../../../server/instance_axios";
 import dayjs from "dayjs";
 import warning from "antd/es/_util/warning";
 import { getQueryClient } from "@/app/components/getQueryClient";
+import Link from "next/link";
 
 type AttendanceEntry = {
   employee_id: string;
@@ -163,7 +164,7 @@ export default function AttendancePage() {
                       className="h-10 mt-1 shadow-lg"
                       // onClick={handleFilter}
                     >
-                      View
+                      <Link href={"/dashboard/attendance/calendarview"}>View</Link>
                     </Button>,
     },
   ];

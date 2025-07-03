@@ -1,9 +1,9 @@
 import { Button, Checkbox, DatePicker, Form, Input, Select, SelectProps } from 'antd'
 import React, { useState } from 'react'
-import axiosInstance from '../../../../server/instance_axios';
+import axiosInstance from '../../../../../../server/instance_axios';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import dayjs from "dayjs";
-import { getQueryClient } from '../getQueryClient'; 
+import { getQueryClient } from '@/app/components/getQueryClient'; 
 
 /** queries */
 import { GetEmployeesRecord } from '@/app/hooks/useGetEmployeesRecord';

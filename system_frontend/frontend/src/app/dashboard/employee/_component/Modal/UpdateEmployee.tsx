@@ -5,7 +5,7 @@ import { Button, Checkbox, DatePicker, Form, Input, Modal, Select } from "antd";
 
 import { GetEmployeesRecord } from "@/app/hooks/useGetEmployeesRecord";
 import { useMutation } from "@tanstack/react-query";
-import axiosInstance from "../../../../../server/instance_axios";
+import axiosInstance from "../../../../../../server/instance_axios";
 import dayjs from "dayjs";
 import { getQueryClient } from "@/app/components/getQueryClient";
 
@@ -47,7 +47,7 @@ export default function UpdateEmployee(props: UpdateEmployeeProps) {
     const { useGetEmployeeDetail, useGetDepartments, useGetShift, useGetIncentives, useGetDepartmentPosition } = GetEmployeesRecord();
     const { data: employeeDetail, isLoading, isSuccess: employeeSuccess } = useGetEmployeeDetail(props.id)
     const [openResponsive, setOpenResponsive] = useState(false);
-    console.log(employeeDetail)
+    // console.log(employeeDetail)
     const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
 
     useEffect(() => {
@@ -263,12 +263,8 @@ export default function UpdateEmployee(props: UpdateEmployeeProps) {
                       rules={[{ required: true }]}
                     >
                       <Select placeholder="Educational Attainment">
-                        <Option value="Associate degree">
-                          Associate degree
-                        </Option>
-                        <Option value="Bachelor's degree">
-                          Bachelor's degree
-                        </Option>
+                        <Option value="Associate degree">Associate degree</Option>
+                        <Option value="Bachelor's degree">Bachelor's degree</Option>
                         <Option value="Master's degree">Master's degree</Option>
                         <Option value="PhD degree">PhD degree</Option>
                       </Select>

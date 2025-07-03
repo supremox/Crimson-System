@@ -2,9 +2,9 @@ import { GetEmployeesRecord } from '@/app/hooks/useGetEmployeesRecord';
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
 import { Button, Form, Input, TimePicker } from 'antd'
 import React, { useState } from 'react'
-import { getQueryClient } from '../getQueryClient';
+import { getQueryClient } from '@/app/components/getQueryClient'; 
 import { useMutation } from '@tanstack/react-query';
-import axiosInstance from '../../../../server/instance_axios';
+import axiosInstance from '../../../../../../server/instance_axios';
 import dayjs from "dayjs";
 import { Dayjs } from "dayjs";
 
@@ -91,23 +91,23 @@ export default function ShiftCreate() {
                         </Form.Item>
 
                         <div className="flex flex-row gap-6">
-                        <Form.Item label="Shift Start Time" name="start_time">
-                            <TimePicker value={value} onChange={onTimeChange} />
-                        </Form.Item>
+                            <Form.Item label="Shift Start Time" name="start_time">
+                                <TimePicker value={value} onChange={onTimeChange} />
+                            </Form.Item>
 
-                        <Form.Item label="Shift End Time" name="end_time">
-                            <TimePicker value={value} onChange={onTimeChange} />
-                        </Form.Item>
+                            <Form.Item label="Shift End Time" name="end_time">
+                                <TimePicker value={value} onChange={onTimeChange} />
+                            </Form.Item>
                         </div>
 
                         <div className="flex flex-row gap-6">
-                        <Form.Item label="Shift Break Start" name="break_start">
-                            <TimePicker value={value} onChange={onTimeChange} />
-                        </Form.Item>
+                            <Form.Item label="Shift Break Start" name="break_start">
+                                <TimePicker value={value} onChange={onTimeChange} />
+                            </Form.Item>
 
-                        <Form.Item label="Shift Break End" name="break_end">
-                            <TimePicker value={value} onChange={onTimeChange} />
-                        </Form.Item>
+                            <Form.Item label="Shift Break End" name="break_end">
+                                <TimePicker value={value} onChange={onTimeChange} />
+                            </Form.Item>
                         </div>
                         <Form.Item>
                         <Button
