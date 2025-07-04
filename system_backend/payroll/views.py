@@ -9,6 +9,7 @@ from calendar_event.models import CalendarEvent, Overtime
 from employee.models import Employee, EmployeeYearlySchedule
 from payroll.utils import PayCalculator
 
+
 # Create your views here.
 class PayrollGenerateAPIView(views.APIView):
     def post(self, request, *args, **kwargs):
@@ -54,28 +55,23 @@ class PayrollGenerateAPIView(views.APIView):
                     'employee_id': emp_id,
                     'employee_name': record['employee_name'],
                     'avatar': record['avatar'],
-                    'attendance': []
+                    'earnings': []
                 }
 
             pay_input = {
-                "is_regular_holiday": record.get("is_regular_holiday", False),
-                "is_special_non_working": record.get("is_special_non_working", False),
-                "is_ordinary": record.get("is_ordinary", False),
-                "is_rest_day": record.get("is_rest_day", False),
-                "is_double_holiday": record.get("is_double_holiday", False),
-                "is_double_special": record.get("is_double_special", False),
-                "is_night_shift": record.get("is_night_shift", False),
-                "is_overtime": record.get("is_overtime", False),
+                "holiday_types":["special_working"],
+                "is_rest_day"  : False,
+                "is_overtime"  : False,
+                "is_night_shift": False,
                 "hourly_rate": hourly_rate,
-                "hours_worked": record["total_hours_worked"],
-                "overtime_hrs": record.get("overtime_hrs", 0),
-                "late_minutes": record["total_hours_worked"],
-                "undertime_minutes": record.get("undertime_minutes", 0),
+                "hours_worked":8,
+                "late_minutes":0,
+                "undertime_minutes":0
             }
 
             pay_result = PayCalculator(**pay_input)
                 
-            employees[emp_id]['attendance'].append({
+            employees[emp_id]['earnings'].append({
                 'date': record['date'],
                 'pay_details': pay_result,
                 

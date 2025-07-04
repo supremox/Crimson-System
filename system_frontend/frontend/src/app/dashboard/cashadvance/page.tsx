@@ -9,7 +9,7 @@ import { DeleteOutlined, FilterOutlined, FolderViewOutlined, SearchOutlined, Upl
 import axiosInstance from "../../../../server/instance_axios";
 import dayjs from "dayjs";
 import { getQueryClient } from "@/app/components/getQueryClient";
-import LeaveFiling from "./modal/CashAdvanceFiling";
+import CashAdvanceFiling from "./modal/CashAdvanceFiling";
 
 
 export default function CashAdvancePage() {
@@ -91,7 +91,7 @@ export default function CashAdvancePage() {
         </div>
         <div className="bg-white rounded-lg mx-5 mb-5 p-5">
             <div className="flex flex-wrap justify-end items-center gap-4 mt-4">
-                <LeaveFiling />
+                <CashAdvanceFiling />
             </div>
 
 

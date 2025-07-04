@@ -1,5 +1,6 @@
 "use client";
 
+import '@ant-design/v5-patch-for-react-19';
 import React, { useRef, useState } from "react";
 import { Table, Avatar, Upload, Button, DatePicker, Input } from "antd";
 import type { TableColumnsType } from "antd";
@@ -110,12 +111,11 @@ export default function AttendancePage() {
     ...allDates.map((date) => ({
       title: String(date),
       dataIndex: String(date),
-      key: String(date),
       width: 180,
       render: (_: unknown, row: any) => {
         const att = row[String(date)];
         return att ? (
-          <span className="flex flex-col gap-2">
+          <span className="flex flex-col gap-2" key={`${row.employee_id}-${date}`}>
             <div className="flex justify-between bg-white rounded-md px-2 py-0">
               <div className="flex flex-col">
                 <span className="text-gray-500 text-xs">Time in</span>
@@ -153,20 +153,20 @@ export default function AttendancePage() {
         );
       },
     })),
-    {
-      title: "Action",
-      key: "action",
-      fixed: "right",
-      width: 100,
-      render: () => <Button
-                      icon={<FolderViewOutlined />}
-                      type="primary"
-                      className="h-10 mt-1 shadow-lg"
-                      // onClick={handleFilter}
-                    >
-                      <Link href={"/dashboard/attendance/calendarview"}>View</Link>
-                    </Button>,
-    },
+    // {
+    //   title: "Action",
+    //   key: "action",
+    //   fixed: "right",
+    //   width: 100,
+    //   render: () => <Button
+    //                   icon={<FolderViewOutlined />}
+    //                   type="primary"
+    //                   className="h-10 mt-1 shadow-lg"
+    //                   // onClick={handleFilter}
+    //                 >
+    //                   <Link href={"/dashboard/attendance/calendarview"}>View</Link>
+    //                 </Button>,
+    // },
   ];
 
   const [dateRange, setDateRange] = useState<(dayjs.Dayjs | null)[]>([]);
@@ -244,7 +244,7 @@ export default function AttendancePage() {
           <p className="ml-4 mt-2 italic">This is a Attendance Management were you can log attendance record from Excel and see it in the table. <br /> 
               Using Look Up you can see attendance data by selecting The Start date and End date</p>
         </div>
-        <div className="bg-white rounded-lg mx-5 mb-5 p-5">
+        <div className="bg-white rounded-lg shadow-lg mx-5 mb-5 p-5">
             <div className="flex flex-wrap justify-end items-center gap-4 mt-4">
               <div className="flex flex-row gap-4">
                 <Input

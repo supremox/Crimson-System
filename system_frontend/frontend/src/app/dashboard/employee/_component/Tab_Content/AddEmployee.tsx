@@ -35,6 +35,8 @@ type EmployeeFieldType = {
   incentives_id: string;
   work_days: string;
   on_call_days: string;
+  total_working_days: string;
+  total_duty_hrs: string;
 };
 
 export default function AddEmployee() {
@@ -191,6 +193,7 @@ export default function AddEmployee() {
                                         <Form.Item
                                         label="Gender"
                                         name="gender"
+                                        className='w-35'
                                         rules={[{ required: true }]}
                                         >
                                         <Select placeholder="Select gender">
@@ -203,6 +206,7 @@ export default function AddEmployee() {
                                         <Form.Item
                                         label="Civil Status"
                                         name="civil_status"
+                                        className='w-35'
                                         rules={[{ required: true }]}
                                         >
                                         <Select placeholder="Select civil status">
@@ -215,6 +219,7 @@ export default function AddEmployee() {
                                         <Form.Item
                                         label="Educational Attainment"
                                         name="educational_attainment"
+                                        className='w-50'
                                         rules={[{ required: true }]}
                                         >
                                         <Select placeholder="Educational Attainment">
@@ -385,20 +390,39 @@ export default function AddEmployee() {
                                 </div>
 
                                 <div className="flex flex-col">
-                                    <Form.Item label="Incentives" name="incentives_id">
-                                        <Select
-                                        mode="multiple"
-                                        allowClear
-                                        style={{ width: "100%" }}
-                                        placeholder="Incentive"
-                                        onChange={handleChange}
-                                        loading={isLoading}
-                                        options={incentives?.map((inc: any) => ({
-                                            label: inc.incentive_name,
-                                            value: inc.id,
-                                        }))}
-                                        />
-                                    </Form.Item>
+                                    <div className="flex flex-row gap-2">
+                                        <Form.Item label="Incentives" name="incentives_id" className='w-80'>
+                                            <Select
+                                            mode="multiple"
+                                            allowClear
+                                            placeholder="Incentive"
+                                            onChange={handleChange}
+                                            loading={isLoading}
+                                            options={incentives?.map((inc: any) => ({
+                                                label: inc.incentive_name,
+                                                value: inc.id,
+                                            }))}
+                                            />
+                                        </Form.Item>
+
+                                        <Form.Item
+                                            label="Total Days"
+                                            name="total_working_days"
+                                            className='w-30'
+                                            rules={[{ required: true }]}
+                                            >
+                                            <Input />
+                                        </Form.Item>
+
+                                        <Form.Item
+                                            label="Total hours"
+                                            name="total_duty_hrs"
+                                            className='w-30'
+                                            rules={[{ required: true }]}
+                                            >
+                                            <Input />
+                                        </Form.Item>
+                                    </div>
 
                                     <Form.Item label="Work Days" name="work_days">
                                         <Checkbox.Group

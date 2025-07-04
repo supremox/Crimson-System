@@ -96,7 +96,7 @@ export default function PayrollPage() {
 
 
             <Table
-              className="mx-5 mb-5 mt-4 shadow-lg shadow-blue-900"
+              className="mb-5 mt-4 shadow-lg"
               size="middle"
               columns={dynamicColumns}
               dataSource={attendance}

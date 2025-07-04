@@ -39,6 +39,8 @@ type EmployeeFieldType = {
   incentives_id: string;
   work_days: string;
   on_call_days: string;
+  total_working_days: string;
+  total_duty_hrs: string;
 };
 
 export default function UpdateEmployee(props: UpdateEmployeeProps) {
@@ -389,7 +391,7 @@ export default function UpdateEmployee(props: UpdateEmployeeProps) {
                       </Form.Item>
                     </div>
 
-                    <div className="flex flex-row gap-4">
+                    <div className="flex flex-row gap-3">
                       <Form.Item
                         label="Department"
                         name="department_id"
@@ -439,6 +441,26 @@ export default function UpdateEmployee(props: UpdateEmployeeProps) {
                           <Option value="Intern">Intern</Option>
                           <Option value="Traine">Traine</Option>
                         </Select>
+                      </Form.Item>
+
+                      <Form.Item
+                          label="Days"
+                          name="total_working_days"
+                          initialValue={employeeDetail.total_working_days}
+                          className='w-20'
+                          rules={[{ required: true }]}
+                          >
+                          <Input />
+                      </Form.Item>
+
+                      <Form.Item
+                          label="Hours"
+                          name="total_duty_hrs"
+                          initialValue={employeeDetail.total_duty_hrs}
+                          className='w-20'
+                          rules={[{ required: true }]}
+                          >
+                          <Input />
                       </Form.Item>
                     </div>
 

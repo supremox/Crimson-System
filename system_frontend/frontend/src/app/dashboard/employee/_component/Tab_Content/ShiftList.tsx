@@ -1,19 +1,18 @@
 "use client";
 
 import React, { useState } from "react";
-import { Table, Avatar, Upload, Button, DatePicker, Input } from "antd";
+import { Table, Button} from "antd";
 import type { TableColumnsType } from "antd";
-import { createStyles } from "antd-style";
-import { GetAttendanceRecord } from "@/app/hooks/useGetAttendance";
-import { DeleteOutlined, EditOutlined, FilterOutlined, FolderViewOutlined, SearchOutlined, UploadOutlined, WalletOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { getQueryClient } from "@/app/components/getQueryClient";
 import { GetEmployeesRecord } from "@/app/hooks/useGetEmployeesRecord";
 import CreateShift from "../Modal/CreateShift";
+import UpdateShift from "../Modal/UpdateShift";
 
 
 export default function ShiftList() {
-  const { useGetShift} = GetEmployeesRecord();
+  const { useGetShift } = GetEmployeesRecord();
 
   const { data: shift, isLoading, error } = useGetShift()
 
@@ -71,7 +70,7 @@ export default function ShiftList() {
             className="h-10 shadow-lg"
             // onClick={handleFilter}
         >
-            <EditOutlined />
+            <UpdateShift />
         </Button>
         <Button
             type="primary"
@@ -88,12 +87,10 @@ export default function ShiftList() {
 
   return (
     <>
-      <div className="flex flex-col">
-        <div className="bg-white rounded-lg mt-4 mb-5 p-5">
-          <h3 className="text-2xl font-bold font-sans">Shifts Management</h3>
-        </div>
-        <div className="bg-white rounded-lg mb-5 p-5">
-            <div className="flex flex-wrap justify-end items-center gap-4 mt-4">
+      <div className="flex flex-col mt-5">
+        <div className="bg-white rounded-lg shadow-lg mb-5 p-5">
+            <div className="flex flex-wrap justify-between  items-center gap-4 mt-4">
+                <h3 className="text-2xl font-bold ml-2 font-sans">Shifts Management</h3>
                 <CreateShift />
             </div>
 

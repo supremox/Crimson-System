@@ -11,6 +11,11 @@ class Attendance(models.Model):
     late = models.CharField(max_length=10)
     undertime = models.CharField(max_length=10)
     overtime = models.CharField(max_length=10)
+    holiday_types = models.JSONField(default=list, blank=True)
+    is_rest_day = models.BooleanField(default=False)
+    is_overtime = models.BooleanField(default=False)
+    is_night_shift = models.BooleanField(default=False)
+
     status = models.CharField(max_length=50)
 
     def __str__(self):

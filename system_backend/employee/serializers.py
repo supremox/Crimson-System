@@ -130,6 +130,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
             'position', 'position_id',
             'incentives', 'incentives_id',
             'work_days', 'on_call_days',
+            'total_working_days', 'total_duty_hrs',
             'working_days_display', 'on_call_days_display', 'yearly_schedule',
             'career_status'
         ]

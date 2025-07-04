@@ -89,7 +89,7 @@ export default function IncetiveList() {
     return (
         <>
             <div className="flex flex-col">
-                <div className="bg-white rounded-lg mt-4 mb-5 p-2">
+                <div className="bg-white rounded-lg shadow-lg mt-4 mb-5 p-2">
                     <Form
                         form={incentiveForm}
                         layout="vertical"
@@ -130,7 +130,7 @@ export default function IncetiveList() {
                 </div>
 
                 {/* Incentives Table */}
-                <div className="bg-white rounded-lg mb-5 p-5">
+                <div className="bg-white rounded-lg shadow-lg mb-5 p-5">
                     
                     <Table
                         className="mt-4 shadow-lg "

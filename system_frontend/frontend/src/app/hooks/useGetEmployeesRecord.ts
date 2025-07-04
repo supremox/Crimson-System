@@ -44,7 +44,7 @@ const useGetShift = () => {
 
 const useGetIncentives = () => {
     return useQuery({
-        queryKey: ["incentives"],
+        queryKey: ["incentive"],
         queryFn: () => fetcher("/employee/incentives/name/")
     });
 }

@@ -13,6 +13,7 @@ import {
 import {
   ClockCircleOutlined,
   DollarOutlined,
+  EditOutlined,
   FolderOutlined,
   WalletOutlined,
 } from '@ant-design/icons';
@@ -29,7 +30,7 @@ type ShiftFieldType = {
   break_end: string;
 };
 
-export default function CreateShift() {
+export default function UpdateShift() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form] = Form.useForm();
   const queryClient = getQueryClient();
@@ -65,11 +66,10 @@ export default function CreateShift() {
     <>
       <Button
         type="primary"
-        icon={<ClockCircleOutlined />}
-        className="h-10 shadow-lg"
+        className="h-10 w-2 shadow-lg"
         onClick={() => setIsModalOpen(true)}
       >
-        Create Shift
+        <EditOutlined />
       </Button>
 
       <Modal
@@ -79,7 +79,7 @@ export default function CreateShift() {
         footer={false}
       >
         <div className="flex flex-col p-5 gap-3">
-          <h2 className="text-xl font-bold mb-4 mt-2">Shift Creation</h2>
+          <h2 className="text-xl font-bold mb-4 mt-2">Edit Shift</h2>
           <Form
             form={form}
             layout="vertical"
@@ -136,7 +136,7 @@ export default function CreateShift() {
               className="h-10 mt-1 w-90 ml-10 shadow-lg"
               onClick={() => form.submit()} 
             >
-              Create Shift
+              Update Shift
             </Button>
           </Form>
         </div>

@@ -43,7 +43,7 @@ class EmployeeListCreateView(generics.ListCreateAPIView):
                 # "employee": serializer.data
             }, status=status.HTTP_201_CREATED)
             
-        # print(serializer.errors)
+        print(serializer.errors)
         return Response({
             "message": "Employee creation failed.",
             "errors": serializer.errors

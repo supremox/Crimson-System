@@ -136,21 +136,30 @@ class AttendanceImportAPIView(views.APIView):
                 continue
 
             for date in df.columns[1:]:
+                check_date =  dt.datetime.strptime(date + "-" + str(year), "%m-%d-%Y").date()
                 employees = Employee.objects.filter(employee_id=row['Staff Code'])
                 if not employees.exists():
                     continue
 
                 employee_instance = employees.get()
 
+                print(f"Shift: {employee_instance.shift}")
+
+                holiday_types = (
+                            CalendarEvent.objects
+                            .filter(event_date=check_date)
+                            .values_list('event_type', flat=True)
+                            # .distinct()
+                        )
+
 
                 if row[date] == "":
-                    # Check if employee is schedule for this date
-                    check_date =  dt.datetime.strptime(date + "-" + str(year), "%m-%d-%Y").date()
-                    
+                    # Check employee schedule for this date
                     yearly_schedule = EmployeeYearlySchedule.objects.filter(
                         employee=employee_instance,
                         date=check_date,
                     ).first()
+
 
                     if yearly_schedule.type == "work":
 
@@ -168,6 +177,10 @@ class AttendanceImportAPIView(views.APIView):
                                 late="00:00",
                                 undertime="00:00",
                                 overtime="00:00",
+                                holiday_types=holiday_types,
+                                is_rest_day=False,
+                                is_overtime=False,
+                                is_night_shift=False,
                                 status="Holiday"
                             ))
                             continue

@@ -1,10 +1,11 @@
-import React, { useState } from 'react'
+import '@ant-design/v5-patch-for-react-19';
+import React, { useState } from 'react';
 import axiosInstance from '../../../../../../server/instance_axios';
 import { useMutation } from '@tanstack/react-query';
 import { GetEmployeesRecord } from '@/app/hooks/useGetEmployeesRecord';
 import { getQueryClient } from '@/app/components/getQueryClient';
 import { Button, Form, Input, Modal } from 'antd';
-import { EditOutlined, WalletOutlined } from '@ant-design/icons';
+import { EditOutlined } from '@ant-design/icons';
 
 interface UpdateDepartmentProps {
   id: number;
@@ -14,93 +15,84 @@ type DepartmentFieldType = {
   department_name: string;
 };
 
-export default function UpdateDepartment(props: UpdateDepartmentProps) {
+export default function UpdateDepartment({ id }: UpdateDepartmentProps) {
+  const { useGetDepartments } = GetEmployeesRecord();
+  const { data: departments, isLoading } = useGetDepartments();
+  const queryClient = getQueryClient();
 
-    const {  useGetDepartments } = GetEmployeesRecord();
-    const { data: departments, isLoading } = useGetDepartments()
-    const queryClient = getQueryClient();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [form] = Form.useForm();
 
-    const [openResponsive, setOpenResponsive] = useState(false);
+  const { mutate: updateDepartment } = useMutation({
+    mutationFn: async (data: DepartmentFieldType) =>
+      await axiosInstance.put(`/employee/department/update/${id}/`, data),
+    onSuccess: (data) => {
+      if (data.status === 201) {
+        queryClient.invalidateQueries({ queryKey: ['departments'] });
+        alert(data.data.message);
+        setIsModalOpen(false); // ✅ Close modal on success
+      }
+    },
+    onError: (error) => {
+      alert(error);
+    },
+  });
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [departmentform] = Form.useForm();
+  const handleUpdate = () => {
+    form
+      .validateFields()
+      .then((values) => updateDepartment(values))
+      .catch((info) => console.log('Validation Failed:', info));
+  };
 
-    const showModal = () => {
-        setIsModalOpen(true);
-    };
+  if (isLoading) {
+    return <Button loading />;
+  }
 
-    const { mutate: mutate_update_department } = useMutation({
-        mutationFn: async (data: DepartmentFieldType) => {
-        return await axiosInstance.put(`/employee/department/update/${props.id}/`, data);
-        },
-    });
+  return (
+    <div>
+      <Button
+        type="primary"
+        className="h-10 shadow-lg mr-8"
+        onClick={() => setIsModalOpen(true)}
+      >
+        <EditOutlined />
+      </Button>
 
-    const onUpdateDepartment = (values: any) => {
-        // console.log('Employee Data', values);
-        mutate_update_department(values, {
-            onSuccess: (data) => {
-                if (data.status === 201) {
-                queryClient.invalidateQueries({ queryKey: ["departments"] });
-                alert(data.data.message);
-                console.log(data.data.employee.employee_id);
-                }
-            },
-            onError: (error) => {
-                alert(error);
-            },
-            });
-        };
+      <Modal
 
-        if (isLoading) {
-            return <Button loading></Button>
-        }
-
-
-    return (
-        <div>
-            <Button
-                type="primary"
-                className="h-10 shadow-lg mr-8"
-                onClick={() => setOpenResponsive(true)}
+        open={isModalOpen}
+        onCancel={() => setIsModalOpen(false)}
+        footer={null} // custom footer
+      >
+        <div className="flex flex-col p-5 gap-3">
+            <h2 className="text-xl font-bold mb-4 mt-2">Edit Department</h2>
+            <Form
+                form={form}
+                layout="vertical"
+                initialValues={{
+                    department_name: departments?.department_name || '',
+                }}
             >
-                {<EditOutlined/>}
-            </Button>
+                <Form.Item
+                    label="Department Name"
+                    name="department_name"
+                    rules={[{ required: true, message: 'Please enter department name' }]}
+                >
+                    <Input className="w-90 shadow-lg" />
+                </Form.Item>
 
-            <Modal
-                closable={{ 'aria-label': 'Custom Close Button' }}
-                open={openResponsive}
-                onCancel={() => setIsModalOpen(false)}
-                footer={false}
-            >
-                <div className="flex flex-col p-5 gap-3">
-                    <h2 className="text-xl font-bold mb-4 mt-2">Edit Department Name</h2>
-                    <Form
-                        form={departmentform}
-                        layout="vertical"
-                        // onFinish={onUpdateEmployee}
-                        className="rounded-lg"
-                    >
-                        <Form.Item
-                            label="Department Name"
-                            name="department_name"
-                            initialValue={departments.department_name}
-                            rules={[{ required: true }]}
-                        >
-                            <Input className="shadow-lg w-90" />
-                        </Form.Item>
-
-                        <Button
-                            icon={<EditOutlined />}
-                            type="primary"
-                            className="h-10 mt-1 w-90 ml-10 shadow-lg"
-                            onClick={onUpdateDepartment}
-                        >
-                            Update Department Name
-                        </Button>
-                        
-                    </Form>
-                </div>
-            </Modal>
+                <Button
+                    icon={<EditOutlined />}
+                    type="primary"
+                    className="w-90 ml-10 mt-2 shadow-lg"
+                    onClick={handleUpdate}
+                >
+                    Update Department
+                </Button>
+            </Form>
         </div>
-    )
+      </Modal>
+    </div>
+  );
 }

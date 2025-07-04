@@ -1,5 +1,6 @@
 import { getQueryClient } from '@/app/components/getQueryClient';
 import { GetEmployeesRecord } from '@/app/hooks/useGetEmployeesRecord';
+import '@ant-design/v5-patch-for-react-19';
 import { Button, Form, Input, Select, Space, Table, TableProps } from 'antd'
 import React from 'react'
 import axiosInstance from '../../../../../../server/instance_axios';
@@ -186,7 +187,7 @@ export default function DepartmentPositionList() {
                                 <Select placeholder="Select department">
                                     {Array.isArray(departments) &&
                                     departments.length === 0 && (
-                                        <span>No Departments</span>
+                                        <Option>No Departments</Option>
                                     )}
                                     {Array.isArray(departments) &&
                                     departments.map((dept: any) => (

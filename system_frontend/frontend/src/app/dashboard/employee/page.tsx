@@ -9,6 +9,7 @@ import DepartmentPositionList from "./_component/Tab_Content/DepartmentPositionL
 import ShiftList from "./_component/Tab_Content/ShiftList";
 import IncentiveList from "./_component/Tab_Content/IncentiveList";
 
+
 export default function EmployeePage() {
   const [activeTab, setActiveTab] = useState<
     "employee" | "add" | "department_and_position" | "shift" | "incentive"

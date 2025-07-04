@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Button, DatePicker, Modal, Divider, ConfigProvider } from 'antd';
+import { Button, DatePicker, Modal, Divider, ConfigProvider, Checkbox } from 'antd';
+import type { CheckboxProps } from 'antd';
 import { WalletOutlined } from '@ant-design/icons';
 import dayjs from "dayjs";
 import axiosInstance from '../../../../../server/instance_axios';
@@ -43,6 +44,16 @@ export default function GeneratePayroll() {
         }
     };
 
+    const onChange: CheckboxProps['onChange'] = (e) => {
+        console.log(`checked = ${e.target.checked}`);
+    };
+
+    const [selected, setSelected] = useState<string | null>(null);
+
+    const handleCheckboxChange = (value: string) => {
+        setSelected(prev => (prev === value ? null : value));
+    };
+
     <ConfigProvider
         theme={{
             components: {
@@ -60,7 +71,7 @@ export default function GeneratePayroll() {
         <Button
             type="primary"
             icon={<WalletOutlined />}
-            className="h-10 shadow-lg mr-8"
+            className="h-10 shadow-lg"
             onClick={showModal}
         >
             Generate Payroll
@@ -73,13 +84,19 @@ export default function GeneratePayroll() {
             onCancel={handleCancel}
             footer={false}
         >
-            <div className="flex flex-col p-5 bg-white rounded-lg shadow-md shadow-blue-950 gap-3 m-8">
+            <div className="flex flex-col p-5 gap-3">
                 <h2 className="text-xl font-bold mb-4 mt-2">Payroll Generation</h2>
                 <RangePicker
                     className="h-10 w-90 shadow-lg"
                     onChange={dates => setDateRange(dates ?? [])}
                 />
-
+              
+                <div className="flex flex-row bg-white shadow-lg w-90 p-2 rounded-lg gap-4">
+                    <h3 className="text-sm ml-1 mr-3">Deduction:</h3>
+                    <Checkbox checked={selected === 'cutoff'}    onChange={() => handleCheckboxChange('cutoff')} >Per Cut-Off</Checkbox>
+                    <Checkbox checked={selected === 'secondoff'} onChange={() => handleCheckboxChange('secondoff')} >Per Second-Off</Checkbox>
+                </div>
+                
                 <Button
                     icon={<WalletOutlined />}
                     type="primary"
