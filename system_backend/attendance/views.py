@@ -145,7 +145,7 @@ class AttendanceImportAPIView(views.APIView):
 
                 print(f"Shift: {employee_instance.shift}")
 
-                holiday_types = (
+                holiday_types = list(
                             CalendarEvent.objects
                             .filter(event_date=check_date)
                             .values_list('event_type', flat=True)
@@ -167,6 +167,8 @@ class AttendanceImportAPIView(views.APIView):
                         is_holiday = CalendarEvent.objects.filter(
                             event_date=check_date,
                         ).exists()
+
+                        print(f"Holiday Types: {holiday_types}")
 
                         if is_holiday:
                             attendance_objects.append(Attendance(

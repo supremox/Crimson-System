@@ -88,5 +88,11 @@
             {"date":"2025-05-15", "time_in": "08:29:00", "time_out": "17:36:00", "status": "Early"}
         ]
     }
-    ]
+    ],
+    {
+      "overtime_hrs": {
+          "before_10pm": {"hours": 3, "minutes": 59},
+          "after_10pm": {"hours": 0, "minutes": 31}
+      }
+    }
 ]
