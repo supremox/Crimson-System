@@ -1,13 +1,14 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Employee, Department, Position, Shift, Incentive
+from .models import Employee, Department, Position, Shift, Incentive, TotalLeave
 from .serializers import ( 
     EmployeeSerializer, 
     DepartmentSerializer, 
     PositionSerializer, 
     ShiftSerializer,
     IncentiveSerializer,
+    TotalLeaveSerializer
 )
 
 class EmployeeListCreateView(generics.ListCreateAPIView):
@@ -172,7 +173,9 @@ class IncentiveListCreateView(generics.ListCreateAPIView):
         }, status=status.HTTP_400_BAD_REQUEST)
 
 
-
+class TotalLeaveDetailView(generics.RetrieveUpdateAPIView):
+    queryset = TotalLeave.objects.all()
+    serializer_class = TotalLeaveSerializer
 
     
 

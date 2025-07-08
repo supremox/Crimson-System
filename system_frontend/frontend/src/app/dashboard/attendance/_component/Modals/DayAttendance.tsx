@@ -38,7 +38,7 @@ export default function DayAttendance({ emp_id, day, children }: DayAttendancePr
             </div>
             <div className="flex flex-col border-b-3 border-indigo-500">
                 <span className="text-gray-500 text-xs mt-1">Over-Time</span>
-                {attendance?.overtime}
+                {attendance?.overtime.before_10pm.hour}:{attendance?.overtime.before_10pm.minutes} {attendance?.overtime.after_10pm.hour}:{attendance?.overtime.after_10pm.minutes} {attendance?.overtime.after_6am.hour}:{attendance?.overtime.after_6am.minutes}
             </div>
             <div className="flex flex-col border-b-3 border-indigo-500">
                 <span className="text-gray-500 text-xs mt-1">Total Worked hrs</span>

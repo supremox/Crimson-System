@@ -63,7 +63,7 @@ export default function UpdateDepartment({ id }: UpdateDepartmentProps) {
 
         open={isModalOpen}
         onCancel={() => setIsModalOpen(false)}
-        footer={null} // custom footer
+        footer={null} 
       >
         <div className="flex flex-col p-5 gap-3">
             <h2 className="text-xl font-bold mb-4 mt-2">Edit Department</h2>

@@ -10,7 +10,7 @@ from django.core.mail import EmailMessage
 
 from employee.models import Employee, EmployeeYearlySchedule
 from user.models import CustomUser
-from calendar_event.models import ShiftChangeRequest, Leave, CalendarEvent
+from calendar_event.models import ShiftChangeRequest, Leave, CalendarEvent, Overtime
 
 from .models import Attendance
 from .serializers import AttendanceSerializer, FileUploadSerializer, AttendanceQuerySerializer
@@ -45,6 +45,20 @@ class AttendanceAPIView(generics.ListAPIView):
                 'time_out': record['time_out'],
                 'status': record['status'],
             })
+            # print(record)
+            # pay_result = {
+            #     "holiday_types":record["holiday_types"],
+            #     "is_rest_day":record["is_rest_day"],
+            #     "is_overtime":record["is_overtime"],
+            #     "is_night_shift":record["is_night_shift"],
+            #     "hours_worked":record["total_hours_worked"],
+            #     "night_diff_hours":record["night_diff_hours"],
+            #     "overtime_hrs":record["overtime"],
+            #     "late_minutes":record["late"],
+            #     "undertime_minutes":record["undertime"]
+
+            # }
+            # print(pay_result)
         # print(list(employees.values()))
         return Response(list(employees.values()), status=status.HTTP_200_OK)
     
@@ -106,6 +120,9 @@ class AttendancefilterRetrieveAPIView(views.APIView):
                 'total_hours_worked': record['total_hours_worked'],
                 'status': record['status'],
             })
+
+           
+        
         return Response(list(employees.values()), status=status.HTTP_200_OK)
 
 
@@ -151,16 +168,15 @@ class AttendanceImportAPIView(views.APIView):
                             .values_list('event_type', flat=True)
                             # .distinct()
                         )
+                
+                # Check employee schedule for this date
+                yearly_schedule = EmployeeYearlySchedule.objects.filter(
+                    employee=employee_instance,
+                    date=check_date,
+                ).first()
 
 
                 if row[date] == "":
-                    # Check employee schedule for this date
-                    yearly_schedule = EmployeeYearlySchedule.objects.filter(
-                        employee=employee_instance,
-                        date=check_date,
-                    ).first()
-
-
                     if yearly_schedule.type == "work":
 
                         # Check if the date is a Holiday
@@ -178,7 +194,13 @@ class AttendanceImportAPIView(views.APIView):
                                 time_out=dt.time(0, 0, 0),
                                 late="00:00",
                                 undertime="00:00",
-                                overtime="00:00",
+                                overtime={
+                                    "before_10pm": {"hours": 0, "minutes": 0},
+                                    "after_10pm": {"hours": 0, "minutes": 0},
+                                    "after_6am": {"hours": 0, "minutes": 0}
+                                },
+                                total_hours_worked="0:0",
+                                night_diff_hours= {"hours": 0, "minutes": 0},
                                 holiday_types=holiday_types,
                                 is_rest_day=False,
                                 is_overtime=False,
@@ -202,7 +224,17 @@ class AttendanceImportAPIView(views.APIView):
                                 time_out=dt.time(0, 0, 0),
                                 late="00:00",
                                 undertime="00:00",
-                                overtime="00:00",
+                                overtime={
+                                    "before_10pm": {"hours": 0, "minutes": 0},
+                                    "after_10pm": {"hours": 0, "minutes": 0},
+                                    "after_6am": {"hours": 0, "minutes": 0}
+                                },
+                                total_hours_worked="0:0",
+                                night_diff_hours= {"hours": 0, "minutes": 0},
+                                holiday_types=holiday_types,
+                                is_rest_day=False,
+                                is_overtime=False,
+                                is_night_shift=False,
                                 status=leave_request.leave_type
                             ))
                             continue
@@ -214,7 +246,17 @@ class AttendanceImportAPIView(views.APIView):
                             time_out=dt.time(0, 0, 0),
                             late="00:00",
                             undertime="00:00",
-                            overtime="00:00",
+                            overtime={
+                                "before_10pm": {"hours": 0, "minutes": 0},
+                                "after_10pm": {"hours": 0, "minutes": 0},
+                                "after_6am": {"hours": 0, "minutes": 0}
+                            },
+                            total_hours_worked="0:0",
+                            night_diff_hours= {"hours": 0, "minutes": 0},
+                            holiday_types=holiday_types,
+                            is_rest_day=False,
+                            is_overtime=False,
+                            is_night_shift=False,
                             status="Absent"
                         ))
 
@@ -228,7 +270,17 @@ class AttendanceImportAPIView(views.APIView):
                             time_out=dt.time(0, 0, 0),
                             late="00:00",
                             undertime="00:00",
-                            overtime="00:00",
+                            overtime={
+                                "before_10pm": {"hours": 0, "minutes": 0},
+                                "after_10pm": {"hours": 0, "minutes": 0},
+                                "after_6am": {"hours": 0, "minutes": 0}
+                            },
+                            total_hours_worked="0:0",
+                            night_diff_hours= {"hours": 0, "minutes": 0},
+                            holiday_types=holiday_types,
+                            is_rest_day=False,
+                            is_overtime=False,
+                            is_night_shift=False,
                             status="On-Call"
                         ))
 
@@ -240,7 +292,17 @@ class AttendanceImportAPIView(views.APIView):
                             time_out=dt.time(0, 0, 0),
                             late="00:00",
                             undertime="00:00",
-                            overtime="00:00",
+                            overtime={
+                                "before_10pm": {"hours": 0, "minutes": 0},
+                                "after_10pm": {"hours": 0, "minutes": 0},
+                                "after_6am": {"hours": 0, "minutes": 0}
+                            },
+                            total_hours_worked="0:0",
+                            night_diff_hours= {"hours": 0, "minutes": 0},
+                            holiday_types=holiday_types,
+                            is_rest_day=True,
+                            is_overtime=False,
+                            is_night_shift=False,
                             status="Rest Day"
                         ))
 
@@ -252,6 +314,34 @@ class AttendanceImportAPIView(views.APIView):
                     time_out = dt.datetime.strptime(row[date][-5:], "%H:%M").time()
                 except Exception:
                     continue
+
+                # ============== Rest Day Checker =================== #
+
+                attendance_schedule = EmployeeYearlySchedule.objects.filter(
+                    employee=employee_instance,
+                    date=attendance_date,
+                ).first()
+
+                is_rest_day = False
+                if attendance_schedule.type == "rest":
+                    is_rest_day = True
+
+                # ============== OverTime Checker =================== #
+
+                overtime_request = Overtime.objects.filter(
+                    employee=employee_instance,
+                    overtime_date=attendance_date,
+                    overtime_status="Approve"
+                )
+
+                if overtime_request:
+                    is_overtime = True
+                else:
+                    is_overtime = False
+                
+                # ============== Shift Change Checker =================== #
+
+                is_night_shift = False
 
                 shift_request = ShiftChangeRequest.objects.filter(
                     employee=employee_instance,
@@ -271,13 +361,21 @@ class AttendanceImportAPIView(views.APIView):
                     break_start = shift.break_start
                     break_end = shift.break_end
 
+
+                if shift_end < shift_start:
+                    is_night_shift = True
+                
+
+                # ============== Attendance Calculation =================== #
+
                 calc = AttendanceCalculation.calculate_attendance(time_in, time_out, shift_start, shift_end, break_start, break_end)
 
                 late = f"{calc['late']['hours']}:{calc['late']['minutes']:02}"
                 undertime = f"{calc['undertime']['hours']}:{calc['undertime']['minutes']:02}"
-                overtime = f"{calc['overtime']['hours']}:{calc['overtime']['minutes']:02}"
+                overtime = calc['overtime_hrs']
                 total_work_hours = f"{calc['total_work_hours']['hours']}:{calc['total_work_hours']['minutes']:02}"
                 status_label = calc['late']['status']
+                night_diff_hours = calc['night_diff_hours']
 
                 attendance_objects.append(Attendance(
                     employee=employee_instance,
@@ -288,6 +386,11 @@ class AttendanceImportAPIView(views.APIView):
                     undertime=undertime,
                     overtime=overtime,
                     total_hours_worked=total_work_hours,
+                    night_diff_hours=night_diff_hours,
+                    holiday_types=holiday_types,
+                    is_rest_day=is_rest_day,
+                    is_overtime=is_overtime,
+                    is_night_shift=is_night_shift,
                     status=status_label
                 ))
 

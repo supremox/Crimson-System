@@ -54,7 +54,7 @@ export default function LeaveFiling() {
             type="primary"
             icon={<FolderOutlined />}
             className="h-10 shadow-lg mr-8"
-            onClick={showModal}
+             onClick={() => setIsModalOpen(true)}
         >
             File Leave
         </Button>
@@ -62,6 +62,7 @@ export default function LeaveFiling() {
         <Modal
             closable={{ 'aria-label': 'Custom Close Button' }}
             open={isModalOpen}
+            onCancel={() => setIsModalOpen(false)}
             footer={false}
         >
             <div className="flex flex-col p-5 gap-3">
@@ -79,7 +80,7 @@ export default function LeaveFiling() {
                       >
                         <Select placeholder="Type of Leave" className='w-90 shadow-lg'>
                             <Option value="Associate degree">Vacation Leave</Option>
-                            <Option value="Bachelor's degree">Sicke Leave</Option>
+                            <Option value="Bachelor's degree">Sick Leave</Option>
                             <Option value="Master's degree">Paternity Leave</Option>
                             <Option value="PhD degree">Maternity Leave</Option>
                         </Select>

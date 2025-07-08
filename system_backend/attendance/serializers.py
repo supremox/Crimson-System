@@ -22,6 +22,11 @@ class AttendanceSerializer(serializers.ModelSerializer):
             'undertime',
             'overtime',
             'total_hours_worked',
+            'holiday_types',
+            'night_diff_hours',
+            'is_rest_day',
+            'is_overtime',
+            'is_night_shift',
             'status',
         ]
 

@@ -12,4 +12,5 @@ urlpatterns = [
     path('position/names/', views.PositionListCreateView.as_view()),
     path('shifts/names/', views.ShiftListCreateView.as_view()),
     path('incentives/name/', views.IncentiveListCreateView.as_view()),
+    path('leave/<int:pk>/', views.TotalLeaveDetailView.as_view(), name='total_leave_detail'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

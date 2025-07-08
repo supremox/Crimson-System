@@ -7,7 +7,8 @@ from .models import (
     Position,
     Incentive,
     DayOfWeek,
-    Employee
+    Employee,
+    TotalLeave
 )
 from user.models import CustomUser
 
@@ -58,6 +59,16 @@ class IncentiveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Incentive
         fields = ['id', 'incentive_name', 'incentive_amount']
+
+class TotalLeaveSerializer(serializers.ModelSerializer):
+    total_leave = serializers.SerializerMethodField()
+
+    class Meta:
+        model = TotalLeave
+        fields = ['id', 'vacation_leave', 'sick_leave', 'total_leave']
+
+    def get_total_leave(self, obj):
+        return obj.total_leave
 
 class WorkingDaySerializer(serializers.ModelSerializer):
     day_display = serializers.SerializerMethodField()

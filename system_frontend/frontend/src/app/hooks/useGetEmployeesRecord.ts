@@ -28,6 +28,13 @@ const useGetDepartmentPosition = (selectedDepartment: string | null) => {
     })
 }
 
+const useGetLeaves = () => {
+    return useQuery({
+        queryKey: ["leave"],
+        queryFn: () => fetcher("/employee/leave/1/"),
+    });
+}
+
 const useGetPosition = () => {
     return useQuery({
     queryKey: ["position"],
@@ -63,6 +70,7 @@ export const GetEmployeesRecord = () => {
         useGetDepartmentPosition,
         useGetPosition,
         useGetShift,
+        useGetLeaves,
         useGetIncentives,
         useGetEmployeeDetail
     }

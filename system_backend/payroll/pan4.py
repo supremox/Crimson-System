@@ -281,7 +281,8 @@ class AttendanceCalculation:
             'late': AttendanceCalculation.calculate_late(time_in_dt, shift_start_dt, break_start_dt, break_end_dt),
             'undertime': AttendanceCalculation.calculate_undertime(time_out_dt, shift_end_dt),
             'overtime_hrs': AttendanceCalculation.calculate_overtime(time_out_dt, shift_end_dt),
-            'total_work_hours': AttendanceCalculation.calculate_total_work_hours(time_in_dt, time_out_dt, break_start_dt, break_end_dt, shift_end_dt, shift_start_dt)
+            'total_work_hours': AttendanceCalculation.calculate_total_work_hours(time_in_dt, time_out_dt, break_start_dt, break_end_dt, shift_end_dt, shift_start_dt),
+            'night_diff_hours': AttendanceCalculation.calculate_night_diff_hours(shift_start_dt, shift_end_dt, break_start_dt, break_end_dt)
         }
 
     @staticmethod
@@ -345,6 +346,40 @@ class AttendanceCalculation:
         }
 
     @staticmethod
+    def calculate_night_diff_hours(shift_start_dt, shift_end_dt, break_start_dt, break_end_dt):
+        nd_start = datetime.combine(shift_start_dt.date(), time(22, 0))  # 10 PM
+        nd_end = datetime.combine(shift_start_dt.date(), time(6, 0)) + timedelta(days=1)  # 6 AM next day
+
+        # Handle overnight shifts
+        if shift_end_dt < shift_start_dt:
+            shift_end_dt += timedelta(days=1)
+
+        overlap_start = max(shift_start_dt, nd_start)
+        overlap_end = min(shift_end_dt, nd_end)
+
+        if overlap_start >= overlap_end:
+            return {'hours': 0, 'minutes': 0}
+
+        # Night diff duration before adjusting for break
+        night_diff_duration = overlap_end - overlap_start
+
+        # Adjust break time if within night diff window
+        break_overlap = timedelta(0)
+        if break_start_dt < overlap_end and break_end_dt > overlap_start:
+            adjusted_break_start = max(break_start_dt, overlap_start)
+            adjusted_break_end = min(break_end_dt, overlap_end)
+            break_overlap = adjusted_break_end - adjusted_break_start
+
+        # Subtract break time
+        net_night_diff = night_diff_duration - break_overlap
+        total_minutes = net_night_diff.total_seconds() // 60
+
+        return {
+            'hours': int(total_minutes // 60),
+            'minutes': int(total_minutes % 60)
+        }
+
+    @staticmethod
     def calculate_total_work_hours(time_in_dt, time_out_dt, break_start_dt, break_end_dt, shift_end_dt, shift_start_dt):
         actual_end = min(time_out_dt, shift_end_dt)
         work_duration = actual_end - time_in_dt
@@ -362,6 +397,7 @@ class AttendanceCalculation:
             'hours': int(total_minutes // 60),
             'minutes': int(total_minutes % 60)
         }
+
 
 
 

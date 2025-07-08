@@ -14,11 +14,14 @@ type IncentiveFieldType = {
 
 
 export default function IncetiveList() {
-    const { useGetIncentives } = GetEmployeesRecord();
+    const { useGetIncentives, useGetLeaves } = GetEmployeesRecord();
     const queryClient = getQueryClient();
     const [incentiveForm] = Form.useForm();
 
     const { data: incentive, isLoading, error } = useGetIncentives()
+    const { data: leave } = useGetLeaves()
+    
+    console.log("leave", leave)
 
     const { mutate: mutate_incentive } = useMutation({
         mutationFn: async (data: IncentiveFieldType) => {
@@ -143,6 +146,56 @@ export default function IncetiveList() {
                     />
 
                 </div>
+
+                {/* Leaves */}
+                <div className="bg-white rounded-lg shadow-lg mb-5 p-5">
+                    <div className="flex flex-row gap-4">
+                        <h2 className="text-xl font-bold ml-4 mt-2 mr-4">Leave</h2>
+                        <div className="flex flex-row gap-4">
+                             <div className="flex items-center gap-2">
+                                <Input className="h-10 shadow-lg w-60" placeholder="Total Vacation Leave" defaultValue={leave?.vacation_leave}/>
+                                <Button
+                                    type="primary"
+                                    htmlType="submit"
+                                    className="h-10 shadow-lg"
+                                    icon={<PlusOutlined />}
+                                >
+                                    Vacation Leave
+                                </Button>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <Input className="h-10 shadow-lg w-60" placeholder="Sick Leave" defaultValue={leave?.sick_leave}/>
+                                <Button
+                                    type="primary"
+                                    htmlType="submit"
+                                    className="h-10 shadow-lg"
+                                    icon={<PlusOutlined />}
+                                >
+                                    Sick Leave
+                                </Button>
+                            </div>     
+                        </div>  
+
+                        <div className="bg-white rounded-lg shadow-lg p-2 ml-10">
+                            <div className="flex flex-row">
+                                <h3 className="text-sm font-semibold mt-2 mr-4">Total Leave:</h3>
+                                <span
+                                    className={`bg-blue-500 flex items-center justify-center mt-1 mx-auto`}
+                                    style={{
+                                        height: "30px",
+                                        width: "110px",
+                                        borderRadius: "20px",
+                                        color: "white",
+                                    }}
+                                >
+                                    {leave?.total_leave}
+                                </span>
+                            </div>
+                        </div>             
+                    </div>
+                </div>
+
             </div>
         </>
   )

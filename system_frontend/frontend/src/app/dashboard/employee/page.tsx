@@ -74,7 +74,7 @@ export default function EmployeePage() {
           }`}
           onClick={() => setActiveTab("incentive")}
         >
-          Incentive
+          Incentive / Leave
         </li>
       </ul>
 

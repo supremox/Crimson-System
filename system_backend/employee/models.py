@@ -105,3 +105,13 @@ class EmployeeYearlySchedule(models.Model):
         unique_together = ('employee', 'date')
         ordering = ['date']
     
+class TotalLeave(models.Model):
+    vacation_leave = models.IntegerField(default=10)
+    sick_leave = models.IntegerField(default=10)
+
+    @property
+    def total_leave(self):
+        return self.vacation_leave + self.sick_leave
+
+    def __str__(self):
+        return str(self.total_leave)
