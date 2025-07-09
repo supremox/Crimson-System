@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from .models import CustomUser
-from employee.models import Employee, EmployeeYearlySchedule, Shift
+from employee.models import Employee, EmployeeYearlySchedule, Shift, TotalLeave
 from calendar_event.models import CalendarEvent , Leave, ShiftChangeRequest, Overtime
 from attendance.models import Attendance
 
@@ -32,3 +32,5 @@ admin.site.register(ShiftChangeRequest)
 admin.site.register(Shift)
 admin.site.register(Attendance)
 admin.site.register(Overtime)
+admin.site.register(TotalLeave)
+

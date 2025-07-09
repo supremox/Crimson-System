@@ -8,7 +8,8 @@ from .serializers import (
     PositionSerializer, 
     ShiftSerializer,
     IncentiveSerializer,
-    TotalLeaveSerializer
+    TotalLeaveSerializer,
+    EmployeeUserSerializer
 )
 
 class EmployeeListCreateView(generics.ListCreateAPIView):

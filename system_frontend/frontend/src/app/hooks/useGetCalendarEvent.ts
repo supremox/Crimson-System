@@ -11,8 +11,42 @@ const useGetCalendarEvents = () => {
   });
 }
 
+const useGetLeaves = () => {
+    return useQuery({
+    queryKey: ["leave"],
+    queryFn: () =>  fetcher("/calendar/leave/all/")
+  });
+}
+
+const useGetLeaveDetail = (id: number) => {
+    return useQuery({
+    queryKey: ["leave-detail", id],
+    queryFn: () =>  fetcher(`/calendar/leave/detail/${id}/`),
+    enabled: !!id // false
+  });
+}
+
+const useGetShifts = () => {
+    return useQuery({
+    queryKey: ["shifts"],
+    queryFn: () =>  fetcher("/calendar/shift/all/")
+  });
+}
+
+const useGetShiftDetail = (id: number) => {
+    return useQuery({
+    queryKey: ["shift-detail", id],
+    queryFn: () =>  fetcher(`/calendar/shift/detail/${id}/`),
+    enabled: !!id // false
+  });
+}
+
 export const GetCalendarEventsRecord = () => {
     return {
-        useGetCalendarEvents
+        useGetCalendarEvents,
+        useGetLeaves,
+        useGetLeaveDetail,
+        useGetShifts,
+        useGetShiftDetail
     }
 }

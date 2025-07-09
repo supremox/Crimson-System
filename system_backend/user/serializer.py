@@ -1,11 +1,41 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import CustomUser
+from django.apps import apps
 
 class CustomUserSerializer(serializers.ModelSerializer):
+    employee_id = serializers.SerializerMethodField()
+    position = serializers.SerializerMethodField()
+
     class Meta:
         model = CustomUser
-        fields = ['first_name', 'last_name', 'middle_name', 'suffix', 'email']
+        fields = [
+            'first_name', 
+            'last_name', 
+            'middle_name', 
+            'suffix', 
+            'email', 
+            'employee_id', 
+            'position'
+        ]
+
+    def get_employee_model(self):
+        return apps.get_model('employee', 'Employee')
+
+    def get_employee(self, obj):
+        Employee = self.get_employee_model()
+        try:
+            return Employee.objects.select_related('position').get(user=obj)
+        except Employee.DoesNotExist:
+            return None
+    
+    def get_employee_id(self, obj):
+        employee = self.get_employee(obj)
+        return employee.employee_id if employee else None
+
+    def get_position(self, obj):
+        employee = self.get_employee(obj)
+        return employee.position.position_name if employee and employee.position else None
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):

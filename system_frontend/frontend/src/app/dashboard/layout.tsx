@@ -11,6 +11,8 @@ import Link from "next/link";
 import { removeToken } from "../../../server/getToken";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
+import { GetEmployeesRecord } from "../hooks/useGetEmployeesRecord";
+
 import {
   Layout,
   Menu,
@@ -79,12 +81,13 @@ const fetcher = (url: string) => axiosInstance.get(url);
 export default function Home({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+
+  const { useGetEmployeeUser } = GetEmployeesRecord()
   const router = useRouter();
-  const { data: user } = useQuery({
-    queryKey: ["user"],
-    queryFn: () => fetcher("/auth/userv2/me/"),
-  });
-  // const { logout} = AuthActions();
+  const { data: user } = useGetEmployeeUser()
+
+  console.log("user", user)
+
   const [collapsed, setCollapsed] = useState(false);
 
   console.log(user);
@@ -100,15 +103,6 @@ export default function Home({
       removeToken("refreshToken");
       router.push("/");
     },
-    // logout(undefined, {
-    //   onSuccess: async (data) => {
-    //     if (data.status === 200) {
-    //       removeToken("accessToken");
-    //       removeToken("refreshToken");
-    //       window.location.href = '/';
-    //     }
-    //   },
-    // }),
   };
 
   return (
@@ -135,9 +129,9 @@ export default function Home({
               {!collapsed && (
                 <div className="flex flex-col text-white">
                   <h1 className="text-base font-semibold leading-tight">
-                    {user?.data.first_name || user?.data.first_name}
+                    {user?.first_name || user?.first_name}
                   </h1>
-                  <h3 className="text-sm text-gray-400">Frontend Dev</h3>
+                  <h3 className="text-sm text-gray-400">{user?.position}</h3>
                 </div>
               )}
             </div>

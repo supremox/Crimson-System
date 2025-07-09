@@ -1,11 +1,12 @@
 import { GetEmployeesRecord } from '@/app/hooks/useGetEmployeesRecord';
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons'
 import { Button, Form, Input, Table } from 'antd';
-import type { TableColumnsType } from "antd";
-import React from 'react'
+import type { InputRef, TableColumnsType } from "antd";
+import React, { useRef } from 'react'
 import { getQueryClient } from '@/app/components/getQueryClient'; 
 import { useMutation } from '@tanstack/react-query';
 import axiosInstance from '../../../../../../server/instance_axios';
+import { Span } from 'next/dist/trace';
 
 type IncentiveFieldType = {
   incentive_name: string;
@@ -17,6 +18,9 @@ export default function IncetiveList() {
     const { useGetIncentives, useGetLeaves } = GetEmployeesRecord();
     const queryClient = getQueryClient();
     const [incentiveForm] = Form.useForm();
+    const [leaveform] = Form.useForm();
+    const vacationRef = useRef<InputRef>(null);
+    const sickRef = useRef<InputRef>(null);
 
     const { data: incentive, isLoading, error } = useGetIncentives()
     const { data: leave } = useGetLeaves()
@@ -40,6 +44,24 @@ export default function IncetiveList() {
         onError: (error) => {
             alert(error);
         },
+        });
+    };
+
+    const { mutate: mutate_updateLeave } = useMutation({
+        mutationFn: async (data: { vacation_leave?: number; sick_leave?: number }) => {
+            return await axiosInstance.patch("/employee/leave/1/", data);
+        },
+    });
+
+    const onUpdateLeave = (values: { vacation_leave: number; sick_leave: number }) => {
+        mutate_updateLeave(values, {
+            onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['leave'] }); // refresh leave data
+            },
+            onError: (error) => {
+            alert('Failed to update leave');
+            console.error(error);
+            },
         });
     };
 
@@ -151,35 +173,34 @@ export default function IncetiveList() {
                 <div className="bg-white rounded-lg shadow-lg mb-5 p-5">
                     <div className="flex flex-row gap-4">
                         <h2 className="text-xl font-bold ml-4 mt-2 mr-4">Leave</h2>
-                        <div className="flex flex-row gap-4">
-                             <div className="flex items-center gap-2">
-                                <Input className="h-10 shadow-lg w-60" placeholder="Total Vacation Leave" defaultValue={leave?.vacation_leave}/>
-                                <Button
+                        <div className="flex flex-row gap-2">
+                            <Form
+                                form={leaveform}
+                                layout="inline"
+                                onFinish={onUpdateLeave} 
+                            >
+                                <Form.Item label={<span className='mt-1.5 text-sm font-semibold'>Vacation Leave</span>}  name="vacation_leave" initialValue={leave?.vacation_leave} rules={[{ required: true, message: 'Required' }]}>
+                                    <Input className="h-10 shadow-lg w-60" placeholder="Total Vacation Leave" />
+                                </Form.Item>
+
+                                <Form.Item label={<span className='mt-1.5 text-sm font-semibold'>Sick Leave</span>} name="sick_leave" initialValue={leave?.sick_leave} rules={[{ required: true, message: 'Required' }]}>
+                                    <Input className="h-10 shadow-lg w-60" placeholder="Sick Leave" />
+                                </Form.Item>
+
+                                <Form.Item>
+                                    <Button
                                     type="primary"
                                     htmlType="submit"
-                                    className="h-10 shadow-lg"
+                                    className="h-10 mt-1 shadow-lg"
                                     icon={<PlusOutlined />}
-                                >
-                                    Vacation Leave
-                                </Button>
-                            </div>
+                                    >
+                                    Update Leave
+                                    </Button>
+                                </Form.Item>
+                            </Form>
 
-                            <div className="flex items-center gap-2">
-                                <Input className="h-10 shadow-lg w-60" placeholder="Sick Leave" defaultValue={leave?.sick_leave}/>
-                                <Button
-                                    type="primary"
-                                    htmlType="submit"
-                                    className="h-10 shadow-lg"
-                                    icon={<PlusOutlined />}
-                                >
-                                    Sick Leave
-                                </Button>
-                            </div>     
-                        </div>  
-
-                        <div className="bg-white rounded-lg shadow-lg p-2 ml-10">
                             <div className="flex flex-row">
-                                <h3 className="text-sm font-semibold mt-2 mr-4">Total Leave:</h3>
+                                <h3 className="text-sm font-semibold mt-2 ml-10 mr-4">Total Leave:</h3>
                                 <span
                                     className={`bg-blue-500 flex items-center justify-center mt-1 mx-auto`}
                                     style={{
@@ -191,8 +212,9 @@ export default function IncetiveList() {
                                 >
                                     {leave?.total_leave}
                                 </span>
-                            </div>
-                        </div>             
+                            </div>  
+
+                        </div>         
                     </div>
                 </div>
 

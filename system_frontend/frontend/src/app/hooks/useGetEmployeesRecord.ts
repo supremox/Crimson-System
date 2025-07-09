@@ -4,13 +4,19 @@ import axiosInstance from "../../../server/instance_axios";
 const fetcher = (url: string) =>
     axiosInstance.get(url).then((res) => res.data);
 
+const useGetEmployeeUser = () => {
+    return useQuery({
+    queryKey: ["user"],
+    queryFn: () => fetcher("/auth/userv2/me/"),
+  });
+}
+
 const useGetEmployees = () => {
     return useQuery({
     queryKey: ["employees"],
     queryFn: () => fetcher("/employee/name/"),
   });
 }
-
 
 const useGetDepartments = () => {
     return useQuery({
@@ -72,6 +78,7 @@ export const GetEmployeesRecord = () => {
         useGetShift,
         useGetLeaves,
         useGetIncentives,
-        useGetEmployeeDetail
+        useGetEmployeeDetail,
+        useGetEmployeeUser
     }
 }

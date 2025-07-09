@@ -106,9 +106,10 @@ class EmployeeYearlySchedule(models.Model):
         ordering = ['date']
     
 class TotalLeave(models.Model):
+    employee = models.OneToOneField(Employee, on_delete=models.CASCADE, related_name='total_leave', null=True)
     vacation_leave = models.IntegerField(default=10)
     sick_leave = models.IntegerField(default=10)
-
+    
     @property
     def total_leave(self):
         return self.vacation_leave + self.sick_leave

@@ -69,6 +69,7 @@ class TotalLeaveSerializer(serializers.ModelSerializer):
 
     def get_total_leave(self, obj):
         return obj.total_leave
+    
 
 class WorkingDaySerializer(serializers.ModelSerializer):
     day_display = serializers.SerializerMethodField()
@@ -78,7 +79,20 @@ class WorkingDaySerializer(serializers.ModelSerializer):
 
     def get_day_display(self, obj):
         return obj.get_day_display()
+    
+class EmployeeUserSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField(source='user.first_name')
+    last_name = serializers.CharField(source='user.last_name')
 
+    class Meta:
+        model = Employee
+        fields = [
+            'avatar',
+            'employee_id',
+            'first_name',
+            'last_name',
+            'position',
+        ]
 
 class EmployeeSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source='user.first_name')

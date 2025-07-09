@@ -32,7 +32,7 @@ class Leave(models.Model):
     leave_status = models.CharField(max_length=100, choices=Leave_Status_Choices, default=Leave_Status_Choices.PENDING)
 
     def __str__(self):
-        return self.leave_type
+        return f"{self.employee.employee_id} {self.employee.user.first_name} {self.leave_type}"
         
 class ShiftChangeRequest(models.Model):
     class Shift_Type_Choices(models.TextChoices):

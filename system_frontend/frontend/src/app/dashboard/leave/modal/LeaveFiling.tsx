@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Button, DatePicker, Modal, Divider, ConfigProvider, Form, Select, Input } from 'antd';
+import { Button, DatePicker, Modal, Divider, ConfigProvider, Form, Select, Input, Avatar } from 'antd';
 import { FolderOutlined, WalletOutlined } from '@ant-design/icons';
 import dayjs from "dayjs";
 import axiosInstance from '../../../../../server/instance_axios';
+import { GetEmployeesRecord } from '@/app/hooks/useGetEmployeesRecord';
+import { getQueryClient } from '@/app/components/getQueryClient';
 
 export default function LeaveFiling() {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -12,41 +14,40 @@ export default function LeaveFiling() {
         setIsModalOpen(true);
     };
 
+    const { useGetEmployeeUser } = GetEmployeesRecord()
+    const { data: user } = useGetEmployeeUser()
     const { RangePicker } = DatePicker;
     const [dateRange, setDateRange] = useState<(dayjs.Dayjs | null)[]>([]);
+    const queryClient = getQueryClient();
+    
+    // Send Leave request to backend
+    const handleSubmit = async (values: any) => {
+        if (!dateRange || dateRange.length !== 2 || !dateRange[0] || !dateRange[1]) {
+            alert("Please select a leave date range.");
+            return;
+        }
 
-    // Send filter request to backend
-    const handleFilter = async () => {
-        if (dateRange.length === 2 && dateRange[0] && dateRange[1]) {
+        const payload = {
+            leave_type: values.leave_type,
+            leave_description: values.leave_discription,
+            leave_start_date: dayjs(dateRange[0]).format("YYYY-MM-DD"),
+            leave_end_date: dayjs(dateRange[1]).format("YYYY-MM-DD"),
+        };
+
         try {
-            const res = await axiosInstance.post("/attendance/filter/date/", {
-            start_date: dayjs(dateRange[0]).format("YYYY-MM-DD"),
-            end_date: dayjs(dateRange[1]).format("YYYY-MM-DD"),
-            });
+            const res = await axiosInstance.post("/calendar/leave/create/", payload);
+            queryClient.invalidateQueries({ queryKey: ["leave"] });
+            alert("Leave filed successfully.");
+            setIsModalOpen(false);
+            employeeForm.resetFields();
         } catch (error: any) {
-            if (error.response && error.response.data && error.response.data.error) {
+            if (error.response?.data?.error) {
             alert(error.response.data.error);
+            } else {
+            alert("Failed to file leave.");
             }
-            else {
-            alert("Failed to Generate Payroll.");
-            }
-        } 
-        } else {
-        alert("Please select a start and end date.");
         }
     };
-
-    <ConfigProvider
-        theme={{
-            components: {
-            Modal: {
-                colorBgElevated: "transparent"
-            },
-            },
-        }}
-        >
-        ...
-    </ConfigProvider>
 
     return (
         <>
@@ -70,27 +71,37 @@ export default function LeaveFiling() {
                 <Form
                     form={employeeForm}
                     layout="vertical"
-                    // onFinish={onUpdateEmployee}
+                    onFinish={handleSubmit} 
                     className="rounded-lg"
                 >
+                  
+                    <span className="flex flex-row bg-white rounded-lg shadow-lg p-4 items-center gap-3 mb-5">
+                        <Avatar
+                            size={40}
+                            src="/img/default_avatar.png"
+                            alt="avatar"
+                            onError={() => true}
+                        />
+                        <span className="flex flex-col">
+                            <span className="text-gray-500">{user?.employee_id}</span>
+                            <span className="text-black">{user?.first_name} {user?.last_name}</span>
+                        </span>
+                    </span>
+                        
+                  
                     <Form.Item
                         label="Leave Type"
                         name="leave_type"
                         rules={[{ required: true }]}
                       >
                         <Select placeholder="Type of Leave" className='w-90 shadow-lg'>
-                            <Option value="Associate degree">Vacation Leave</Option>
-                            <Option value="Bachelor's degree">Sick Leave</Option>
-                            <Option value="Master's degree">Paternity Leave</Option>
-                            <Option value="PhD degree">Maternity Leave</Option>
-                        </Select>
-                        {/* //   onChange={departmenthandleChange}
-                        //   options={departments?.map((dept: any) => ({
-                        //     label: dept.department_name,
-                        //     value: dept.id,
-                        //   }))} */}
-                        
+                            <Option value="Vacation Leave">Vacation Leave</Option>
+                            <Option value="Sick Leave">Sick Leave</Option>
+                            <Option value="Paternity Leave">Paternity Leave</Option>
+                            <Option value="Maternity Leave">Maternity Leave</Option>
+                        </Select> 
                     </Form.Item>
+
                     <Form.Item
                         label="Leave Date"
                         name="department_id"
@@ -117,7 +128,7 @@ export default function LeaveFiling() {
                         icon={<WalletOutlined />}
                         type="primary"
                         className="h-10 mt-1 ml-10 w-90 shadow-lg"
-                        onClick={handleFilter}
+                        htmlType="submit"
                     >
                         File Leave
                     </Button>

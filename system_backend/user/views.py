@@ -9,6 +9,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.core.exceptions import ObjectDoesNotExist
 
 from .serializer import CustomTokenObtainPairSerializer, CustomUserSerializer
+from employee.serializers import EmployeeUserSerializer
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
@@ -40,37 +41,6 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
         return response
     
-# class CookieTokenRefreshView(TokenRefreshView):
-#     """
-#     Custom view to refresh JWT using refresh token from HttpOnly cookie.
-#     """
-#     def post(self, request, *args, **kwargs):
-#         # Get refresh token from cookie
-#         refresh_token = request.COOKIES.get("refreshToken")
-#         if not refresh_token:
-#             return Response({"detail": "Refresh token missing."}, status=status.HTTP_401_UNAUTHORIZED)
-        
-#         # Inject refresh token into request data for serializer
-#         request.data._mutable = True  # Only needed if request.data is QueryDict
-#         request.data["refresh"] = refresh_token
-#         request.data._mutable = False
-
-#         response = super().post(request, *args, **kwargs)
-#         if response.status_code == 200 and "access" in response.data:
-#             # Set new access token as HttpOnly cookie
-#             response.set_cookie(
-#                 key="accessToken",
-#                 value=response.data["access"],
-#                 httponly=True,
-#                 secure=False,  # Set to True in production!
-#                 samesite="Lax",
-#                 max_age=60 * 5,
-#                 path="/"
-#             )
-#             # Optionally remove access from response body
-#             # del response.data["access"]
-#         return response
-
 class LogoutView(APIView):
     permission_classes = (AllowAny,)
     authentication_classes = ()
