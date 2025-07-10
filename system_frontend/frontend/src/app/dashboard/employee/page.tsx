@@ -8,11 +8,12 @@ import IncetiveCreate from "./_component/Tab_Content/IncetiveCreate";
 import DepartmentPositionList from "./_component/Tab_Content/DepartmentPositionList";
 import ShiftList from "./_component/Tab_Content/ShiftList";
 import IncentiveList from "./_component/Tab_Content/IncentiveList";
+import Contribution from "./_component/Tab_Content/Contribution";
 
 
 export default function EmployeePage() {
   const [activeTab, setActiveTab] = useState<
-    "employee" | "add" | "department_and_position" | "shift" | "incentive"
+    "employee" | "add" | "department_and_position" | "shift" | "incentive" | "contribution"
   >("employee");
 
   return (
@@ -76,6 +77,18 @@ export default function EmployeePage() {
         >
           Incentive / Leave
         </li>
+
+        <li
+          id="settingTab"
+          className={`tab text-center text-[15px] py-2.5 px-6 rounded-tl-2xl rounded-tr-2xl cursor-pointer font-semibold ${
+            activeTab === "contribution"
+              ? "text-white bg-blue-600"
+              : "text-slate-600 bg-gray-200"
+          }`}
+          onClick={() => setActiveTab("contribution")}
+        >
+          Contribution
+        </li>
       </ul>
 
       {/* Employee List Tab */}
@@ -101,6 +114,11 @@ export default function EmployeePage() {
       {/* Add incentive Tab */}
       {activeTab === "incentive" && (
        <IncentiveList/>
+      )}
+
+      {/* Contribution Tab */}
+      {activeTab === "contribution" && (
+       <Contribution/>
       )}
     </div>
   );

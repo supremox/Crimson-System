@@ -224,7 +224,9 @@ class PayCalculator:
         hourly_rate: float = 80.625,
         holiday_types: list[special_day_type] = None,
         is_rest_day: bool = False,
-        is_night_shift: bool = False,
+        is_halfday: bool = False,
+        is_leave_paid: bool = False,
+        is_oncall: bool = False,
         is_overtime: bool = False,
         overtime_hrs: dict = None,
         night_diff_hours: dict = None,
@@ -235,13 +237,16 @@ class PayCalculator:
         self.hourly_rate = hourly_rate
         self.holiday_types = holiday_types or []
         self.is_rest_day = is_rest_day
-        self.is_night_shift = is_night_shift
         self.is_overtime = is_overtime
         self.overtime_hrs = overtime_hrs or {
             "before_10pm": {"hours": 0, "minutes": 0},
             "after_10pm": {"hours": 0, "minutes": 0},
             "after_6am": {"hours": 0, "minutes": 0}
         }
+
+        self.is_halfday = is_halfday
+        self.is_leave_paid = is_leave_paid
+        self.is_oncall = is_oncall
         self.night_diff_hours = night_diff_hours
         self.hours_worked = hours_worked
         self.late_minutes = late_minutes
@@ -340,19 +345,31 @@ class PayCalculator:
         base_multiplier = self.get_base_multiplier(day_type, worked, self.is_rest_day)
         final_multiplier = base_multiplier
 
-        if self.is_night_shift:
-            final_multiplier *= 1.1  # Add 10% night diff
+        # if self.is_night_shift:
+        #     final_multiplier *= 1.1  # Add 10% night diff
 
         if worked:
-            night_diff_pay = self.hourly_rate * 0.10 * (self.night_diff_hours["hours"] + self.night_diff_hours["minutes"] / 60)
-            print(f"night_diff_pay: {night_diff_pay}")
-            gross_pay = self.hourly_rate * self.employee_duty_hrs * final_multiplier
+            if self.is_halfday:
+                night_diff_pay = self.hourly_rate * 0.10 * (self.night_diff_hours["hours"] + self.night_diff_hours["minutes"] / 60)
+                gross_pay = self.hourly_rate * self.employee_duty_hrs / 2 * final_multiplier
+            else:
+                night_diff_pay = self.hourly_rate * 0.10 * (self.night_diff_hours["hours"] + self.night_diff_hours["minutes"] / 60)
+                gross_pay = self.hourly_rate * self.employee_duty_hrs * final_multiplier
         else:
             if "regular" in self.holiday_types:
+                night_diff_pay = self.hourly_rate * 0.10 * (self.night_diff_hours["hours"] + self.night_diff_hours["minutes"] / 60)
                 gross_pay = self.hourly_rate * self.employee_duty_hrs * final_multiplier
-                return self._empty_pay_result(final_multiplier, gross_pay)
-            else:
-                return self._empty_pay_result(0, 0)
+                total_pay = gross_pay + night_diff_pay
+                return self._empty_pay_result(final_multiplier, gross_pay, total_pay)
+            
+            if self.is_leave_paid or self.is_oncall:
+                final_multiplier += 1.0
+                night_diff_pay = self.hourly_rate * 0.10 * (self.night_diff_hours["hours"] + self.night_diff_hours["minutes"] / 60)
+                gross_pay = self.hourly_rate * self.employee_duty_hrs * final_multiplier
+                total_pay = gross_pay + night_diff_pay
+                return self._empty_pay_result(final_multiplier, gross_pay, total_pay)
+               
+            return self._empty_pay_result(0, 0, 0)
 
         # Calculate OT Pay
         ot_pay = 0
@@ -392,7 +409,7 @@ class PayCalculator:
             "total_pay": total_pay
         }
 
-    def _empty_pay_result(self, multiplier, gross_pay):
+    def _empty_pay_result(self, multiplier, gross_pay, total_pay):
         return {
             "multiplier": round(multiplier, 4),
             "hourly_rate": self.hourly_rate,
@@ -402,7 +419,7 @@ class PayCalculator:
             "late_minutes": 0,
             "undertime_minutes": 0,
             "deduction": 0,
-            "total_pay": 0
+            "total_pay": round(total_pay, 2)
         }
 
 
@@ -410,15 +427,17 @@ pay_result = PayCalculator(
     holiday_types=[],
     is_rest_day=False,
     is_overtime=False,
-    is_night_shift=False,
+    is_halfday=False,
+    is_leave_paid=True,
+    is_oncall=False,
     hourly_rate=80.625,
     overtime_hrs= {
         "before_10pm": {"hours": 0, "minutes": 0},
         "after_10pm": {"hours": 0, "minutes": 0},
         "after_6am": {"hours": 0, "minutes": 0},
     },
-    hours_worked=8,
-    night_diff_hours = {"hours": 4, "minutes": 0},
+    hours_worked=0,
+    night_diff_hours = {"hours": 0, "minutes": 0},
     late_minutes=0,
     undertime_minutes=0
 )
@@ -426,9 +445,9 @@ pay_result = PayCalculator(
 result = pay_result.compute_pay()
 
 print(f"Gross Pay : {result['gross_pay']}")
-print(f"Overtime Total Pay : {result['overtime_pay']}")
-print(f"Late Deduction: {result['deduction']['late_deduction']} Undertime Deduction: {result['deduction']['undertime_deduction']}")
-print(f"Total Deduction: {result['deduction']['total_deduction']}")
+# print(f"Overtime Total Pay : {result['overtime_pay']}")
+# print(f"Late Deduction: {result['deduction']['late_deduction']} Undertime Deduction: {result['deduction']['undertime_deduction']}")
+# print(f"Total Deduction: {result['deduction']['total_deduction']}")
 print(f"Net Pay: {result['total_pay']}")
 
 
@@ -457,10 +476,10 @@ print(f"Net Pay: {result['total_pay']}")
 # print(f"Net Pay: {pay_result["total_pay"]}")
 
 
-shift_start = "19:00"
-shift_end = "04:00"
-break_start = "23:00"
-break_end = "00:00"
+shift_start = "22:00"
+shift_end = "07:00"
+break_start = "02:00"
+break_end = "03:00"
 time_in = "19:09"
 time_out = "04:30"
 overtime_start = "1731"

@@ -1,5 +1,6 @@
 "use client";
 
+import '@ant-design/v5-patch-for-react-19';
 import React, { useState } from "react";
 import { Table, Avatar, Upload, Button, DatePicker, Input, Space } from "antd";
 import type { TableColumnsType } from "antd";
@@ -26,7 +27,7 @@ export default function LeavePage() {
        <span className='flex flex-row items-center gap-3'> 
              <Avatar
                size={{ xs: 24, sm: 32, md: 40, lg: 40, xl: 40, xxl: 40 }}
-               src={row.avatar}
+               src="/img/default_avatar.png"
                alt="avatar"
                onError={() => true}
              />

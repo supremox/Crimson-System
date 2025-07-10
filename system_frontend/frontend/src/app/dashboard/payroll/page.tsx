@@ -1,5 +1,6 @@
 "use client";
 
+import '@ant-design/v5-patch-for-react-19';
 import React, { useState } from "react";
 import { Table, Avatar, Upload, Button, DatePicker, Input } from "antd";
 import type { TableColumnsType } from "antd";
@@ -101,7 +102,7 @@ export default function PayrollPage() {
               columns={dynamicColumns}
               dataSource={attendance}
               loading={isLoading}
-              rowKey={(row) => row.id}
+              rowKey={(row) => row.employee_id}
               scroll={{ x: "max-content", y: 55 * 5 }}
             />
         </div>

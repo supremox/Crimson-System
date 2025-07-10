@@ -6,6 +6,8 @@ from rest_framework import status, permissions
 
 from django.http import HttpResponse
 from django.core.mail import EmailMessage
+from django.utils import timezone
+from datetime import timedelta
 
 
 from employee.models import Employee, EmployeeYearlySchedule
@@ -22,12 +24,20 @@ import datetime as dt
 import pandas as pd
 
 class AttendanceAPIView(generics.ListAPIView):
-    queryset = Attendance.objects.select_related('employee__user').all()
     serializer_class = AttendanceSerializer
+
+    def get_queryset(self):
+        # Get the latest 15 distinct attendance dates that have logs
+        recent_dates = (
+            Attendance.objects.order_by("-date")
+            .values_list("date", flat=True)
+            .distinct()[:15]
+        )
+        return Attendance.objects.select_related("employee__user").filter(date__in=recent_dates)
 
     def get(self, request, format=None):
         attendances = self.get_queryset()
-        serializer = self.get_serializer(attendances, many=True)
+        serializer = self.get_serializer(attendances, many=True, context={'request': request})
         # print(f"Serializer Data: {serializer.data}")
         employees = {}
         for record in serializer.data:
@@ -45,21 +55,6 @@ class AttendanceAPIView(generics.ListAPIView):
                 'time_out': record['time_out'],
                 'status': record['status'],
             })
-            # print(record)
-            # pay_result = {
-            #     "holiday_types":record["holiday_types"],
-            #     "is_rest_day":record["is_rest_day"],
-            #     "is_overtime":record["is_overtime"],
-            #     "is_night_shift":record["is_night_shift"],
-            #     "hours_worked":record["total_hours_worked"],
-            #     "night_diff_hours":record["night_diff_hours"],
-            #     "overtime_hrs":record["overtime"],
-            #     "late_minutes":record["late"],
-            #     "undertime_minutes":record["undertime"]
-
-            # }
-            # print(pay_result)
-        # print(list(employees.values()))
         return Response(list(employees.values()), status=status.HTTP_200_OK)
     
 
@@ -120,9 +115,8 @@ class AttendancefilterRetrieveAPIView(views.APIView):
                 'total_hours_worked': record['total_hours_worked'],
                 'status': record['status'],
             })
-
-           
         
+        # print(list(employees.values()))
         return Response(list(employees.values()), status=status.HTTP_200_OK)
 
 
@@ -177,6 +171,8 @@ class AttendanceImportAPIView(views.APIView):
 
 
                 if row[date] == "":
+
+                    # ============== Work Day Checker =================== #
                     if yearly_schedule.type == "work":
 
                         # Check if the date is a Holiday
@@ -185,6 +181,8 @@ class AttendanceImportAPIView(views.APIView):
                         ).exists()
 
                         print(f"Holiday Types: {holiday_types}")
+                    
+                    # ============== Holiday Checker =================== #
 
                         if is_holiday:
                             attendance_objects.append(Attendance(
@@ -204,10 +202,14 @@ class AttendanceImportAPIView(views.APIView):
                                 holiday_types=holiday_types,
                                 is_rest_day=False,
                                 is_overtime=False,
-                                is_night_shift=False,
+                                is_halfday=False,
+                                is_leave_paid=False,
+                                is_oncall=False,
                                 status="Holiday"
                             ))
                             continue
+
+                    # ============== Leave Checker =================== #
 
                         leave_request = Leave.objects.filter(
                             employee=employee_instance,
@@ -216,7 +218,12 @@ class AttendanceImportAPIView(views.APIView):
                             leave_end_date=check_date
                         ).first()
 
+                        is_leave_paid = False
+                        
                         if leave_request:
+                            if leave_request.is_leave_paid:
+                                is_leave_paid = True
+
                             attendance_objects.append(Attendance(
                                 employee=employee_instance,
                                 date=check_date,
@@ -234,11 +241,15 @@ class AttendanceImportAPIView(views.APIView):
                                 holiday_types=holiday_types,
                                 is_rest_day=False,
                                 is_overtime=False,
-                                is_night_shift=False,
+                                is_halfday=False,
+                                is_leave_paid=is_leave_paid,
+                                is_oncall=False,
                                 status=leave_request.leave_type
                             ))
                             continue
 
+                    # ============== Absent =================== # 
+                                
                         attendance_objects.append(Attendance(
                             employee=employee_instance,
                             date=check_date,
@@ -256,12 +267,14 @@ class AttendanceImportAPIView(views.APIView):
                             holiday_types=holiday_types,
                             is_rest_day=False,
                             is_overtime=False,
-                            is_night_shift=False,
+                            is_halfday=False,
+                            is_leave_paid=False,
+                            is_oncall=False,
                             status="Absent"
                         ))
 
-                        print(f"Checking leave for {employee_instance} on {check_date}: {leave_request}")
-                        
+                    # ============== On Call Checker =================== #
+                                            
                     if yearly_schedule.type == "on_call":
                         attendance_objects.append(Attendance(
                             employee=employee_instance,
@@ -280,9 +293,13 @@ class AttendanceImportAPIView(views.APIView):
                             holiday_types=holiday_types,
                             is_rest_day=False,
                             is_overtime=False,
-                            is_night_shift=False,
+                            is_halfday=False,
+                            is_leave_paid=False,
+                            is_oncall=True,
                             status="On-Call"
                         ))
+
+                    # ============== Rest Day Checker I =================== #
 
                     if yearly_schedule.type == "rest":
                         attendance_objects.append(Attendance(
@@ -302,11 +319,15 @@ class AttendanceImportAPIView(views.APIView):
                             holiday_types=holiday_types,
                             is_rest_day=True,
                             is_overtime=False,
-                            is_night_shift=False,
+                            is_halfday=False,
+                            is_leave_paid=False,
+                            is_oncall=False,
                             status="Rest Day"
                         ))
 
                     continue
+                
+                # ============== Data Proccessing for Date, Time-in, Time-Out =================== #
 
                 try:
                     attendance_date = dt.datetime.strptime(date + "-" + str(year), "%m-%d-%Y").date()
@@ -315,7 +336,7 @@ class AttendanceImportAPIView(views.APIView):
                 except Exception:
                     continue
 
-                # ============== Rest Day Checker =================== #
+                # ============== Rest Day Checker II =================== #
 
                 attendance_schedule = EmployeeYearlySchedule.objects.filter(
                     employee=employee_instance,
@@ -334,14 +355,11 @@ class AttendanceImportAPIView(views.APIView):
                     overtime_status="Approve"
                 )
 
+                is_overtime = False
                 if overtime_request:
                     is_overtime = True
-                else:
-                    is_overtime = False
                 
                 # ============== Shift Change Checker =================== #
-
-                is_night_shift = False
 
                 shift_request = ShiftChangeRequest.objects.filter(
                     employee=employee_instance,
@@ -349,7 +367,14 @@ class AttendanceImportAPIView(views.APIView):
                     shift_status="Approve"
                 ).first()
 
+                is_halfday = False
+                
+
                 if shift_request:
+
+                    if shift_request.shift_type == "Halfday":
+                        is_halfday = True
+
                     shift_start = shift_request.start_time
                     shift_end = shift_request.end_time
                     break_start = shift_request.break_start
@@ -360,11 +385,6 @@ class AttendanceImportAPIView(views.APIView):
                     shift_end = shift.end_time
                     break_start = shift.break_start
                     break_end = shift.break_end
-
-
-                if shift_end < shift_start:
-                    is_night_shift = True
-                
 
                 # ============== Attendance Calculation =================== #
 
@@ -390,7 +410,9 @@ class AttendanceImportAPIView(views.APIView):
                     holiday_types=holiday_types,
                     is_rest_day=is_rest_day,
                     is_overtime=is_overtime,
-                    is_night_shift=is_night_shift,
+                    is_halfday=is_halfday,
+                    is_leave_paid=False,
+                    is_oncall=False,
                     status=status_label
                 ))
 
@@ -398,7 +420,6 @@ class AttendanceImportAPIView(views.APIView):
 
         return Response({
             "message": "File uploaded and processed successfully!",
-            "attendance": serializer.data
         }, status=status.HTTP_201_CREATED)
 
 

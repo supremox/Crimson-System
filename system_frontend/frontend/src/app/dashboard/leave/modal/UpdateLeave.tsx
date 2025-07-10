@@ -1,3 +1,4 @@
+import '@ant-design/v5-patch-for-react-19';
 import React, { useState } from 'react';
 import { Button, DatePicker, Modal, Divider, ConfigProvider, Form, Select, Input, Avatar, Space } from 'antd';
 import { ArrowRightOutlined, CheckOutlined, EyeOutlined, FolderOutlined, WalletOutlined } from '@ant-design/icons';
@@ -73,7 +74,7 @@ export default function UpdateLeave(props: UpdateLeaveProps) {
                         <span className="flex flex-row bg-white rounded-lg shadow-lg p-4 items-center gap-3">
                             <Avatar
                                 size={40}
-                                src={leaves?.avatar}
+                                src="/img/default_avatar.png"
                                 alt="avatar"
                                 onError={() => true}
                             />

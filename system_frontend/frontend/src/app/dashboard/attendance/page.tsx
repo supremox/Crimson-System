@@ -49,26 +49,25 @@ export default function AttendancePage() {
   const { useGetAttendance } = GetAttendanceRecord();
 
   const { data: attendance, isLoading, refetch } = useGetAttendance();
+  const [dateRange, setDateRange] = useState<(dayjs.Dayjs | null)[]>([]);
+  const [searchText, setSearchText] = useState("");
+  const [tableLoading, setTableLoading] = useState(false);
+  const [filteredAttendance, setFilteredAttendance] = useState<any[] | null>(null);
+  const queryClient = getQueryClient();
+  
+  console.log("First Format", attendance)
 
   const { RangePicker } = DatePicker;
 
-  const [selected, setSelected] = useState<{ emp_id: string; day: string } | null>(null);
-
-  const handleStatusClick = (emp_id: string, day: string) => {
-    setSelected({ emp_id, day });
-  };
-
-  const handleCloseDayAttendance = () => {
-    setSelected(null);
-  };
-
   const allDates = [
-    ...new Set(
-      attendance?.flatMap((emp: any) => emp.attendance.map((a: any) => a.date))
+      ...new Set(
+      (dateRange.length > 0 ? filteredAttendance : attendance)?.flatMap(
+        (emp: any) => emp.attendance.map((a: any) => a.date) ?? []
+      )
     ),
   ];
 
-  const dataSource = attendance?.map((emp: any) => {
+  const dataSource = (dateRange.length > 0 ? filteredAttendance : attendance)?.map((emp: any) => {
     const record: {
       key: any;
       employee_name: any;
@@ -89,6 +88,8 @@ export default function AttendancePage() {
     return record;
   });
 
+  // console.log("All Dates", allDates)
+
   const dynamicColumns: TableColumnsType = [
     {
       title: "Employee",
@@ -98,7 +99,7 @@ export default function AttendancePage() {
         <span className="flex flex-row items-center ml-3 gap-3">
           <Avatar
             size={40}
-            src={row.avatar || "/img/ppic.png"}
+            src="/img/default_avatar.png"
             alt="avatar"
           />
           <span className="flex flex-col">
@@ -149,7 +150,7 @@ export default function AttendancePage() {
             </DayAttendance>
           </span>
         ) : (
-          <div className="text-gray-400 italic text-center">N/A</div>
+          <div className="text-gray-400 italic text-center">No Attendance Record</div>
         );
       },
     })),
@@ -169,11 +170,9 @@ export default function AttendancePage() {
     // },
   ];
 
-  const [dateRange, setDateRange] = useState<(dayjs.Dayjs | null)[]>([]);
-  const [searchText, setSearchText] = useState("");
-  const [tableLoading, setTableLoading] = useState(false);
-  const [filteredAttendance, setFilteredAttendance] = useState<any[] | null>(null);
-  const queryClient = getQueryClient();
+  
+
+  console.log(dateRange)
   
   // Send filter request to backend
   const handleFilter = async () => {
@@ -201,29 +200,11 @@ export default function AttendancePage() {
     }
   };
 
-  const attendanceData = (filteredAttendance ?? attendance)?.map((emp: any) => {
-    const record: {
-      key: any;
-      employee_name: any;
-      employee_id: any;
-      avatar: any;
-      [date: string]: any;
-    } = {
-      key: emp.employee_id,
-      employee_name: emp.employee_name,
-      employee_id: emp.employee_id,
-      avatar: emp.avatar,
-    };
-
-    emp.attendance.forEach((att: any) => {
-      record[att.date] = att;
-    });
-
-    return record;
-  });
+  console.log("Filtered Attendance Data", filteredAttendance)
+  console.log("After Attendance Data", attendance)
 
   // Filtered data for table
-  const filteredDataSource = attendanceData?.filter((row: any) => {
+  const filteredDataSource = filteredAttendance?.filter((row: any) => {
     const name = row.employee_name?.toLowerCase() || "";
     const id = row.employee_id?.toLowerCase() || "";
     return (
@@ -235,6 +216,7 @@ export default function AttendancePage() {
   const handleSearch = (e: any) => {
     setSearchText(e.target.value);
   };
+
 
   return (
     <>
@@ -291,12 +273,12 @@ export default function AttendancePage() {
 
 
             <Table
-              className="mx-5 mb-5 mt-4 shadow-lg shadow-blue-900"
+              className="mb-5 mt-4 shadow-lg shadow-blue-900"
               size="middle"
               columns={dynamicColumns}
-              dataSource={filteredDataSource}
+              dataSource={dataSource}
               loading={isLoading || tableLoading}
-              rowKey={(row) => row.id}
+              rowKey={(row) => row.employee_id}
               scroll={{ x: "max-content", y: 55 * 5 }}
             />
         </div>

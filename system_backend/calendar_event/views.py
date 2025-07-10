@@ -35,6 +35,10 @@ class LeaveUpdateListView(generics.UpdateAPIView):
     queryset = Leave.objects.all()
     serializer_class = LeaveStatusUpdateSerializer
 
+    def perform_update(self, serializer):
+        # print("🟡 Incoming data from frontend:", self.request.data)
+        serializer.save(leave_status=self.request.data['leave_status'])
+
 
 class LeaveCreateView(generics.CreateAPIView):
     queryset = Leave.objects.all()

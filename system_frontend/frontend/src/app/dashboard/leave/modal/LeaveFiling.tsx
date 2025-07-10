@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, DatePicker, Modal, Divider, ConfigProvider, Form, Select, Input, Avatar } from 'antd';
+import { Button, DatePicker, Modal, Divider, ConfigProvider, Form, Select, Input, Avatar, Checkbox } from 'antd';
 import { FolderOutlined, WalletOutlined } from '@ant-design/icons';
 import dayjs from "dayjs";
 import axiosInstance from '../../../../../server/instance_axios';
@@ -19,6 +19,12 @@ export default function LeaveFiling() {
     const { RangePicker } = DatePicker;
     const [dateRange, setDateRange] = useState<(dayjs.Dayjs | null)[]>([]);
     const queryClient = getQueryClient();
+
+    const [selected, setSelected] = useState<string | null>(null);
+    
+    const handleCheckboxChange = (value: string) => {
+        setSelected(prev => (prev === value ? null : value));
+    };
     
     // Send Leave request to backend
     const handleSubmit = async (values: any) => {
@@ -32,7 +38,10 @@ export default function LeaveFiling() {
             leave_description: values.leave_discription,
             leave_start_date: dayjs(dateRange[0]).format("YYYY-MM-DD"),
             leave_end_date: dayjs(dateRange[1]).format("YYYY-MM-DD"),
+            is_leave_paid: values.is_leave_paid
         };
+
+        console.log("payload", payload)
 
         try {
             const res = await axiosInstance.post("/calendar/leave/create/", payload);
@@ -113,7 +122,17 @@ export default function LeaveFiling() {
                             onChange={dates => setDateRange(dates ?? [])}
                         />
                     </Form.Item>
-                    
+
+                    <Form.Item
+                        name="is_leave_paid"
+                        className="mb-3"
+                        rules={[{ required: true }]}
+                    >
+                        <div className="flex flex-row bg-white shadow-lg w-100 p-2 rounded-lg gap-4">
+                            <Checkbox checked={selected === 'False'} onChange={() => handleCheckboxChange('False')} >Not Paid Leave</Checkbox>
+                            <Checkbox checked={selected === 'True'}      onChange={() => handleCheckboxChange('True')} >Paid Leave</Checkbox>
+                        </div>
+                    </Form.Item>
 
                     <Form.Item
                         label="Reason for Leave"

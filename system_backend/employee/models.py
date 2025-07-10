@@ -54,8 +54,6 @@ class DayOfWeek(models.Model):
 class Employee(models.Model):
     avatar = models.ImageField(
         upload_to='avatar/',
-        null=True,
-        blank=True,
         default='avatar/default_avatar.png'  
     )
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='employee')

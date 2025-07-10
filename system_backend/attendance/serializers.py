@@ -26,7 +26,9 @@ class AttendanceSerializer(serializers.ModelSerializer):
             'night_diff_hours',
             'is_rest_day',
             'is_overtime',
-            'is_night_shift',
+            'is_halfday',
+            'is_leave_paid',
+            'is_oncall',
             'status',
         ]
 
@@ -34,8 +36,9 @@ class AttendanceSerializer(serializers.ModelSerializer):
         return obj.employee.employee_id if obj.employee else None
 
     def get_avatar(self, obj):
-        if obj.employee and obj.employee.avatar:
-            return obj.employee.avatar.url
+        request = self.context.get("request")
+        if obj.employee and obj.employee.avatar and request:
+            return request.build_absolute_uri(obj.employee.avatar.url)
         return None
     
     def get_employee_name(self, obj):

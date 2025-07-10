@@ -15,7 +15,9 @@ class Attendance(models.Model):
     night_diff_hours = models.JSONField(default=dict, blank=True)
     is_rest_day = models.BooleanField(default=False)
     is_overtime = models.BooleanField(default=False)
-    is_night_shift = models.BooleanField(default=False)
+    is_halfday = models.BooleanField(default=False)
+    is_leave_paid = models.BooleanField(default=False)
+    is_oncall = models.BooleanField(default=False)
 
     status = models.CharField(max_length=50)
 

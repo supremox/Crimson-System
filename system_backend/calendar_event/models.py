@@ -29,6 +29,7 @@ class Leave(models.Model):
     leave_end_date = models.DateField()
     leave_type = models.CharField(max_length=100, choices=Leave_Type_Choices)
     leave_description = models.CharField(max_length=255)
+    is_leave_paid = models.BooleanField(default=False)
     leave_status = models.CharField(max_length=100, choices=Leave_Status_Choices, default=Leave_Status_Choices.PENDING)
 
     def __str__(self):
