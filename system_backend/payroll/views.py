@@ -1,7 +1,8 @@
 from rest_framework import generics, views, status
 from rest_framework.response import Response
 
-from .serializers import PayrollGenerateSerializer, ComputePaySerializer
+from .serializers import PayrollGenerateSerializer, ComputePaySerializer, SSSContributionListSerializer, SSSContributionSerializer
+from .models import SSSContribution
 
 from attendance.models import Attendance
 from attendance.serializers import AttendanceSerializer 
@@ -12,15 +13,13 @@ from payroll.utils import PayCalculator
 from typing import TypedDict
 import datetime as dt
 
-class AttendanceRecord(TypedDict):
-    date: dt.date
-    late: str
-    undertime: str
-    overtime:str
-    holiday_types: list
-    is_rest_day: bool
-    is_overtime: bool
-    is_night_shift: bool
+class SSSContributionCreateView(generics.CreateAPIView):
+    queryset = SSSContribution.objects.all()
+    serializer_class = SSSContributionSerializer
+
+class SSSContributionListView(generics.ListAPIView):
+    queryset = SSSContribution.objects.all()
+    serializer_class = SSSContributionListSerializer
 
 class PayrollGenerateAPIView(views.APIView):
     def post(self, request, *args, **kwargs):
@@ -148,6 +147,43 @@ class PayrollGenerateAPIView(views.APIView):
         total_pay = []
 
         return total_pay
+    
+    @staticmethod
+    def compute_pagibig_contribution(self, salary):
+        applicable_salary = min(salary, self.maximum_fund_salary)
+        employee_contribution = applicable_salary * (self.contribution_rate / 100)
+        employer_contribution = applicable_salary * (self.contribution_rate / 100)
+        return {
+            "employee_share": round(employee_contribution, 2),
+            "employer_share": round(employer_contribution, 2),
+            "total": round(employee_contribution + employer_contribution, 2)
+        }
+    
+    @staticmethod
+    def compute_philhealth_contribution(self, salary):
+        # Clamp salary between floor and ceiling
+        applied_salary = min(max(salary, self.salary_floor), self.salary_ceiling)
+        total_premium = applied_salary * (self.premium_rate / 100)
+        employee_share = total_premium / 2
+        employer_share = total_premium / 2
+        return {
+            "applied_salary": applied_salary,
+            "total_premium": round(total_premium, 2),
+            "employee_share": round(employee_share, 2),
+            "employer_share": round(employer_share, 2),
+        }
+    
+    @staticmethod
+    def compute_tax(self, compensation):
+        """
+        Compute tax based on this bracket
+        """
+        if self.max_compensation is None or compensation <= self.max_compensation:
+            if compensation > self.excess_over:
+                excess = compensation - self.excess_over
+                return float(self.base_tax) + (float(self.percentage_over) / 100) * excess
+            return float(self.base_tax)
+        return None
 
 
 

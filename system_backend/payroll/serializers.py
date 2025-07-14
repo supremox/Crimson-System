@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import PayrollGenerate, ComputePay
+from .models import PayrollGenerate, ComputePay, SSSContribution
 
 
 class PayrollGenerateSerializer(serializers.ModelSerializer):
@@ -31,4 +31,18 @@ class ComputePaySerializer(serializers.ModelSerializer):
             'total_deduction',
         ]
 
-    
+class SSSContributionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SSSContribution
+        fields = '__all__'
+
+class SSSContributionListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SSSContribution
+        fields = [
+            'compensation_from',
+            'compensation_to',
+            'total_credit',
+            'employer_total',
+            'employee_total'
+        ]

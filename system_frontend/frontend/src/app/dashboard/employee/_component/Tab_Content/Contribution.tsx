@@ -1,46 +1,53 @@
-import { InputNumber } from 'antd'
+import { ConfigProvider, InputNumber, Tabs  } from 'antd'
+import type { TabsProps } from 'antd';
 import React from 'react'
 
+import SssTab from '../Tab_Contribution/sss_tab';
+import Pagibig_tab from '../Tab_Contribution/pagibig_tab';
+import Philhealth_tab from '../Tab_Contribution/philhealth_tab';
+import BIR_tab from '../Tab_Contribution/BIR_tab';
+
 export default function Contribution() {
+
+    const items: TabsProps['items'] = [
+        {
+            key: '1',
+            label: <span className='ml-4 text-25 font-semibold'>SSS</span>,
+            children: <SssTab/>,
+        },
+        {
+            key: '2',
+            label: <span className='text-25 font-semibold'>Pag-Ibig</span>,
+            children: <Pagibig_tab/>,
+        },
+        {
+            key: '3',
+            label: <span className='text-25 font-semibold'>Philhealth</span>,
+            children: <Philhealth_tab/>,
+        },
+        {
+            key: '4',
+            label: <span className='text-25 font-semibold'>BIR Tax</span>,
+            children: <BIR_tab/>,
+        },
+    ];
+
   return (
-    <div>
-        {/* <div className="flex flex-col rounded-lg p-4 shadow-lg mt-5 bg-white gap-2">
-            <div className="flex flex-row gap-3">
-                <span className="flex text-lg text-white font-semibold bg-blue-950 rounded-lg p-4 shadow-lg h-9 w-28 items-center justify-center">SSS</span>
-                <InputNumber min={1} max={10} defaultValue={3} className='h-10' />
-            </div>
-
-            <div className="flex flex-row gap-3">
-                <span className="flex text-lg text-white font-semibold bg-blue-950 rounded-lg p-4 shadow-lg h-9 w-28 items-center justify-center">Pag-Ibig</span>
-                <InputNumber min={1} max={10} defaultValue={3} className='h-10' />
-            </div>
-
-            <div className="flex flex-row gap-3">
-                <span className="flex text-lg text-white font-semibold bg-blue-950 rounded-lg p-4 shadow-lg h-9 w-28 items-center justify-center">Philhealth</span>
-                <InputNumber min={1} max={10} defaultValue={3} className='h-10' />
-            </div>
-        </div> */}
-
-        <div className="grid grid-cols-5 grid-rows-5 gap-2 rounded-lg p-4 shadow-lg mt-5 bg-white">
-            <div className="col-start-1 row-start-2">
-                <span className="flex text-lg text-white font-semibold bg-blue-950 rounded-lg p-4 shadow-lg h-9 w-28 items-center justify-center">SSS</span>
-            </div>
-            <div className="col-start-1 row-start-3">
-                <span className="flex text-lg text-white font-semibold bg-blue-950 rounded-lg p-4 shadow-lg h-9 w-28 items-center justify-center">Pag-Ibig</span>
-            </div>
-            <div className="col-start-1 row-start-4">
-                <span className="flex text-lg text-white font-semibold bg-blue-950 rounded-lg p-4 shadow-lg h-9 w-28 items-center justify-center">Philhealth</span>
-            </div>
-            <div className="col-start-2 row-start-1">
-                <span className="flex text-lg text-white font-semibold bg-blue-950 rounded-lg p-4 shadow-lg h-9 w-28 items-center justify-center">Threshold</span>
-            </div>
-            <div className="col-start-3 row-start-1">
-                <span className="flex text-lg text-white font-semibold bg-blue-950 rounded-lg p-4 shadow-lg h-9 w-28 items-center justify-center">Threshold</span>
-            </div>
-            <div className="col-start-4 row-start-1">
-                <span className="flex text-lg text-white font-semibold bg-blue-950 rounded-lg p-4 shadow-lg h-9 w-28 items-center justify-center">Threshold</span>
-            </div>
-        </div>
+    <div className="bg-white rounded-lg shadow-lg p-4 mt-5">
+        <ConfigProvider
+            theme={{
+                components: {
+                Tabs: {
+                    itemColor: "white"
+                },
+                Table: {
+                    headerBg: "#155dfc"
+                },
+                },
+            }}
+        >
+            <Tabs defaultActiveKey="1" items={items} tabBarStyle={{color:"white", backgroundColor: "#001529", borderRadius: 7}}  />
+        </ConfigProvider>
     </div>
   )
 }

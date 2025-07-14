@@ -243,6 +243,9 @@ Sample_data = [
 
 
 from datetime import date
+from decimal import Decimal
+
+# from system_backend.payroll.models import WithholdingTaxBracket
 year = date.today().year
 
 
@@ -401,6 +404,50 @@ class AttendanceCalculation:
 
 
 
+def compute_tax(compensation):
+    taxable_income = compensation
+    base_tax = 937.50
+    tax_percentage = 0.20
+    excess_over = 16667
+    minimum_taxable_income = 16667
+
+    if taxable_income < minimum_taxable_income:
+        return 0.0
+    
+    tax = base_tax + (tax_percentage * (taxable_income - excess_over))
+
+    return tax
+
+tax_to_pay = compute_tax(30000)
+print(f"Tax: {tax_to_pay}")
+
+# def compute_withholding_tax(taxable_income, frequency: str):
+#     """
+#     Returns the withholding tax based on the taxable income and frequency
+#     (e.g., 'semi-monthly', 'monthly', etc.) using the WithholdingTaxBracket model.
+#     """
+#     try:
+#         bracket = WithholdingTaxBracket.objects.filter(
+#             frequency=frequency,
+#             min_compensation__lte=taxable_income
+#         ).filter(
+#             # models.Q(max_compensation__gte=taxable_income) | models.Q(max_compensation__isnull=True)
+#         ).order_by('min_compensation').last()
+
+#         if bracket:
+#             excess = taxable_income - bracket.excess_over
+#             excess = max(excess, Decimal('0.00'))  # Ensure it's not negative
+#             tax = bracket.base_tax + (excess * (bracket.percentage_over / Decimal('100')))
+#             return tax.quantize(Decimal('0.01'))  # Round to 2 decimal places
+#         else:
+#             return Decimal('0.00')  # No matching bracket
+
+#     except Exception as e:
+#         # Optionally log the error
+#         print(f"Error computing tax: {e}")
+#         return Decimal('0.00')
 
 
 
+# variable need for tax computation is 
+# taxable income , base tax, tax_percentage, excess_over, withholding Tax 
