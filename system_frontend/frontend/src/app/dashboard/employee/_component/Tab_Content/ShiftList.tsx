@@ -65,13 +65,7 @@ export default function ShiftList() {
       width: 100,
       render: () => 
       <span className="flex items-center justify-center gap-2">
-        <Button
-            type="primary"
-            className="h-10 shadow-lg"
-            // onClick={handleFilter}
-        >
-            <UpdateShift />
-        </Button>
+        <UpdateShift />
         <Button
             type="primary"
             danger

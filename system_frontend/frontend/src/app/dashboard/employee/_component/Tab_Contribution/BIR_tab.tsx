@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
-import { Button, Input, Table, Flex, ConfigProvider, Alert } from 'antd';
+import { Button, Input, Table, Flex, ConfigProvider, Alert, TableProps, InputNumber, Select } from 'antd';
 import { PlusOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
 import axiosInstance from '../../../../../../server/instance_axios';
 import { getQueryClient } from '@/app/components/getQueryClient';
+import { GetPayrollRecord } from '@/app/hooks/useGetPayroll';
 
 export default function BIR_tab() {
     const makeRow = (key: any) => ({
@@ -15,48 +16,54 @@ export default function BIR_tab() {
             excess_over: 'initial',
            
     });
-    
+    const { Option } = Select;
     const [dataSource, setDataSource] = useState([makeRow(0)]);
-   const queryClient = getQueryClient();
+    
+    const { useGetBir } = GetPayrollRecord()
+    const {data: bir_list , isLoading} = useGetBir()
+    
+    const queryClient = getQueryClient();
     
     const [inputs, setInputs] = useState({
-        compensation_from: '',
-        compensation_to: '',
-        employer_rate: '',
-        employee_rate: ''
+        frequency: '',
+        min_compensation: 0,
+        max_compensation: 0,
+        base_tax: 0,
+        percentage_over: 0,
+        excess_over: 0,
     });
 
-    const handleInputChange = (e: any) => {
-        const { name, value } = e.target;
+    const handleInputSelect = (name: string, value: string) => {
         setInputs(prev => ({
             ...prev,
             [name]: value
         }));
     };
 
+    // For InputNumber — a separate handler
+    const handleNumberChange = (name: string, value: number | null) => {
+        setInputs(prev => ({
+            ...prev,
+            [name]: value !== null ? value : 0 
+        }));
+    };
+
     const [errorMessage, setErrorMessage] = useState('');
 
     const handleAdd = async () => {
-        const { compensation_from, compensation_to, employer_rate, employee_rate } = inputs;
+        const { frequency, min_compensation, max_compensation, base_tax, percentage_over, excess_over  } = inputs;
 
         const payload = {
-            "compensation_from": compensation_from,
-            "compensation_to": compensation_to,
-            "employer_rate": employer_rate,
-            "employee_rate": employee_rate
+            "frequency": frequency,
+            "min_compensation": min_compensation,
+            "max_compensation": max_compensation,
+            "base_tax": base_tax,
+            "percentage_over": percentage_over,
+            "excess_over": excess_over,
         };
 
         console.log("Table Input", payload);
 
-         if (
-            !compensation_from.trim() ||
-            !compensation_to.trim() ||
-            !employer_rate.trim() ||
-            !employee_rate.trim()
-        ) {
-            setErrorMessage("All fields are required.");
-            return;
-        }
 
         try {
             const res = await axiosInstance.post(`/payroll/bir/create/`, payload);
@@ -65,12 +72,14 @@ export default function BIR_tab() {
             queryClient.invalidateQueries({ queryKey: ["bir"] });
 
             // Optional: reset inputs after success
-            setInputs({
-                compensation_from: '',
-                compensation_to: '',
-                employer_rate: '',
-                employee_rate: ''
-            });
+            // setInputs({
+            //     frequency: '',
+            //     min_compensation: 0,
+            //     max_compensation: 0,
+            //     base_tax: 0,
+            //     percentage_over: 0,
+            //     excess_over: 0
+            // });
         } 
         catch (error: any) {
             if (error.response?.data?.error) {
@@ -85,91 +94,135 @@ export default function BIR_tab() {
     const handleDelete = (key: any) => {
         setDataSource(dataSource.filter(item => item.key !== key));
     };
-
+    
     const columns = [
         {
             title: 'Frequency',
             dataIndex: 'frequency',
-            render: (value: any, record: any) => value === 'initial' ? <Input className='shadow-md' style={{backgroundColor: "white"}}/> : value
+            render: () => <Select 
+                            placeholder={<span className='text-black'>Frequency</span>} 
+                            style={{width: 200}} 
+                            onChange={(value) => handleInputSelect('frequency', value)}
+                        >
+                            <Option value="daily">Daily</Option>
+                            <Option value="weekly">Weekly</Option>
+                            <Option value="semi-monthly">Semi-Monthly</Option>
+                            <Option value="monthly">Monthly</Option>
+                        </Select>
         },
-         {
+        {
             title: 'Minimum Salary',
             dataIndex: 'min_compensation',
-            render: (value: any, record: any) => value === 'initial' ? <Input className='shadow-md' style={{backgroundColor: "white"}} /> : value,
+            render: () => <InputNumber<number>
+                defaultValue={0.00}
+                name='min_compensation'
+                style={{width: 150}}
+                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                parser={(value) => value?.replace(/\$\s?|(,*)/g, '') as unknown as number}
+                onChange={(value) => handleNumberChange('min_compensation', value)}
+                />         
         },
         {
             title: 'Maximum Salary',
             dataIndex: 'max_compensation',
-            render: (value: any, record: any) => value === 'initial' ? <Input className='shadow-md' style={{backgroundColor: "white"}} /> : value,
+            render: () => <InputNumber<number>
+                defaultValue={0.00}
+                name='max_compensation'
+                style={{width: 150}}
+                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                parser={(value) => value?.replace(/\$\s?|(,*)/g, '') as unknown as number}
+                onChange={(value) => handleNumberChange('max_compensation', value)}
+                />         
         },
         {
             title: 'Base Tax',
             dataIndex: 'base_tax',
-            render: (value: any, record: any) => value === 'initial' ? <Input className='shadow-md' style={{backgroundColor: "white"}}/> : value
+            render: () => <InputNumber<number>
+                defaultValue={0.00}
+                name='base_tax'
+                style={{width: 150}}
+                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                parser={(value) => value?.replace(/\$\s?|(,*)/g, '') as unknown as number}
+                onChange={(value) => handleNumberChange('base_tax', value)}
+                />         
         },
         {
             title: 'Percentage',
             dataIndex: 'percentage_over',
-            render: (value: any, record: any) => value === 'initial' ? <Input className='shadow-md' style={{backgroundColor: "white"}}/> : value
+            render: () => <InputNumber<number>
+                defaultValue={0.00}
+                name='percentage_over'
+                style={{width: 150}}
+                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                parser={(value) => value?.replace(/\$\s?|(,*)/g, '') as unknown as number}
+                onChange={(value) => handleNumberChange('percentage_over', value)}
+                />         
         },
         {
             title: 'Excess Over',
             dataIndex: 'excess_over',
-            render: (value: any, record: any) => value === 'initial' ? <Input className='shadow-md' style={{backgroundColor: "white"}}/> : value
+            render: () => <InputNumber<number>
+                defaultValue={0.00}
+                name='excess_over'
+                style={{width: 150}}
+                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                parser={(value) => value?.replace(/\$\s?|(,*)/g, '') as unknown as number}
+                onChange={(value) => handleNumberChange('excess_over', value)}
+                />         
         },
         {
             title: '',
             dataIndex: 'action',
             width: '50px',
-            render: (_: any, record: any) => (
+            render: () => (
                 <>
-                <Button icon={<PlusOutlined/>} shape="circle" onClick={handleAdd} style={{backgroundColor: "white"}}/>
+                <Button icon={<PlusOutlined style={{color: "white"}}/>} shape="circle" onClick={handleAdd} style={{backgroundColor: "#388E3C"}}/>
                 {/* <Button icon={<DeleteOutlined />} shape="circle" danger onClick={handleDelete}/> */}
                 </>
             )
         }
     ];
 
-    const datacolumns = [
+    const datacolumns: TableProps['columns'] = [
         {
             title: 'Frequency',
-            dataIndex: 'frequency',
-            render: (value: any, record: any) => <span>Semi-Monthly</span>
+            // dataIndex: 'frequency',
+            render: (_, record) => <span>{record.frequency}</span>
         },
         {
             title: 'Minimum Salary',
-            dataIndex: 'min_compensation',
-            render: (value: any, record: any) => <span>0.00</span>
+            // dataIndex: 'min_compensation',
+            render: (_, record) => <span>{record.min_compensation}</span>
         },
         {
             title: 'Maximum Salary',
-            dataIndex: 'max_compensation',
-            render: (value: any, record: any) => <span>10440</span>
+            // dataIndex: 'max_compensation',
+            render: (_, record) => <span>{record.max_compensation}</span>
         },
         {
             title: 'Base Tax',
-            dataIndex: 'base_tax',
-            render: (value: any, record: any) => <span>0.0</span>
+            // dataIndex: 'base_tax',
+            render: (_, record) => <span>{record.base_tax}</span>
         },
         {
             title: 'Percentage',
-            dataIndex: 'percentage_over',
-            render: (value: any, record: any) => <span>0.0</span>
+            // dataIndex: 'percentage_over',
+            render: (_, record) => <span>{record.percentage_over}</span>
         },
         {
             title: 'Excess Over',
-            dataIndex: 'excess_over',
-            render: (value: any, record: any) => <span>0.0</span>
+            // dataIndex: 'excess_over',
+            render: (_, record) => <span>{record.excess_over}</span>
         },
         {
             title: '',
-            dataIndex: 'action',
+            // dataIndex: 'action',
             width: '50px',
-            render: (_: any, record: any) => (
+            render: () => (
                 <>
                 <div className="flex flex-row gap-2">
                     <Button icon={<EditOutlined/>} shape="circle"  />
-                    <Button icon={<DeleteOutlined />} shape="circle" danger onClick={handleDelete}/>
+                    <Button icon={<DeleteOutlined />} shape="circle" danger />
                 </div>
                 </>
             )
@@ -206,16 +259,26 @@ export default function BIR_tab() {
                     style={{marginTop: 0}}
                 />
             </ConfigProvider>
-            <Table
-                size="small"
-                // showHeader={false}
-                // rowSelection={rowSelection}
-                columns={datacolumns}
-                dataSource={dataSource}
-                pagination={false}
-                className='shadow-lg'
-            />
-           
+            <ConfigProvider
+                theme={{
+                    components: {
+                        Table: {
+                            rowHoverBg: "#6596FF",    
+                        },
+                    },
+                }}
+            >
+                <Table
+                    size="small"
+                    columns={datacolumns}
+                    dataSource={bir_list}
+                    rowClassName={(record, index) => `${index % 2 === 0 ? 'bg-white' : 'bg-[#fbfbfb]'} custom-hover-row`}
+                    pagination={false}
+                    rowKey={(row) => row.id}
+                    scroll={{ x: 'max-content', y: 400 }}
+                    className="shadow-lg no-scrollbar-table"
+                />
+            </ConfigProvider>
         </div>
     )
 }

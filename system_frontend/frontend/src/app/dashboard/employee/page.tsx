@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
+
 import AddEmployee from "./_component/Tab_Content/AddEmployee";
 import EmployeeList from "./_component/Tab_Content/EmployeeList";
-import ShiftCreate from "./_component/Tab_Content/ShiftCreate";
-import IncetiveCreate from "./_component/Tab_Content/IncetiveCreate";
 import DepartmentPositionList from "./_component/Tab_Content/DepartmentPositionList";
 import ShiftList from "./_component/Tab_Content/ShiftList";
 import IncentiveList from "./_component/Tab_Content/IncentiveList";
 import Contribution from "./_component/Tab_Content/Contribution";
+
+
 
 
 export default function EmployeePage() {
@@ -19,7 +20,7 @@ export default function EmployeePage() {
   return (
     <div className="p-4">
       {/* Tabs */}
-      <ul className="flex w-max border-b border-gray-300 space-x-4 overflow-hidden">
+      <ul className="flex w-max min-w-full overflow-x-auto border-b border-gray-300 space-x-4 whitespace-nowrap overflow-hidden">
         <li
           id="homeTab"
           className={`tab text-center text-[15px] py-2.5 px-6 rounded-tl-2xl rounded-tr-2xl cursor-pointer font-semibold ${

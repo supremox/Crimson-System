@@ -34,19 +34,19 @@ class SSSContribution(models.Model):
     compensation_to = models.DecimalField(max_digits=10, decimal_places=2)
 
     # Monthly Salary Credit
-    regular_ss_credit = models.DecimalField(max_digits=10, decimal_places=2)
+    regular_ss_credit = models.DecimalField(max_digits=10, decimal_places=2,  null=True, blank=True)
     ec_credit = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     mpf_credit = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     total_credit = models.DecimalField(max_digits=10, decimal_places=2)
 
     # Employer Contribution
-    employer_regular_ss = models.DecimalField(max_digits=10, decimal_places=2)
+    employer_regular_ss = models.DecimalField(max_digits=10, decimal_places=2,  null=True, blank=True)
     employer_mpf = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    employer_ec = models.DecimalField(max_digits=10, decimal_places=2)
+    employer_ec = models.DecimalField(max_digits=10, decimal_places=2,  null=True, blank=True)
     employer_total = models.DecimalField(max_digits=10, decimal_places=2)
 
     # Employee Contribution
-    employee_regular_ss = models.DecimalField(max_digits=10, decimal_places=2)
+    employee_regular_ss = models.DecimalField(max_digits=10, decimal_places=2,  null=True, blank=True)
     employee_mpf = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     employee_total = models.DecimalField(max_digits=10, decimal_places=2)
 
@@ -71,8 +71,8 @@ class PagIbigContributionRule(models.Model):
         return f"{self.min_salary} - {self.max_salary}: E {self.employee_rate}%, ER {self.employer_rate}%"
     
 class PhilhealthContributionRule(models.Model):
-    employee_rate = models.DecimalField(max_digits=4, decimal_places=2, help_text="Percentage rate (e.g. 1.00 or 2.00)")
-    employer_rate = models.DecimalField(max_digits=4, decimal_places=2, help_text="Percentage rate (e.g. 2.00)")
+    employee_rate = models.DecimalField(max_digits=4, decimal_places=3, help_text="Percentage rate (e.g. 1.00 or 2.00)")
+    employer_rate = models.DecimalField(max_digits=4, decimal_places=3, help_text="Percentage rate (e.g. 2.00)")
     premium_rate = models.DecimalField(
         max_digits=4, decimal_places=2, default=5.00,
         help_text="Total premium rate (employer + employee)"

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import PayrollGenerate, ComputePay, SSSContribution
+from .models import PayrollGenerate, ComputePay, SSSContribution, PagIbigContributionRule, PhilhealthContributionRule, WithholdingTaxBracket
 
 
 class PayrollGenerateSerializer(serializers.ModelSerializer):
@@ -31,12 +31,7 @@ class ComputePaySerializer(serializers.ModelSerializer):
             'total_deduction',
         ]
 
-class SSSContributionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SSSContribution
-        fields = '__all__'
-
-class SSSContributionListSerializer(serializers.ModelSerializer):
+class SSSCreateContributionSerializer(serializers.ModelSerializer):
     class Meta:
         model = SSSContribution
         fields = [
@@ -44,5 +39,87 @@ class SSSContributionListSerializer(serializers.ModelSerializer):
             'compensation_to',
             'total_credit',
             'employer_total',
-            'employee_total'
+            'employee_total',
+            'overall_total'
+
+        ]
+
+class SSSContributionListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SSSContribution
+        fields = [
+            'id',
+            'compensation_from',
+            'compensation_to',
+            'total_credit',
+            'employer_total',
+            'employee_total',
+            'overall_total'
+        ]
+
+class PagibigCreateContributionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PagIbigContributionRule
+        fields = [
+            'min_salary',
+            'max_salary',
+            'employee_rate',
+            'employer_rate',
+        ]
+
+class PagibigContributionListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PagIbigContributionRule
+        fields = [
+            'id',
+            'min_salary',
+            'max_salary',
+            'employee_rate',
+            'employer_rate',
+        ]
+
+class PhilhealthCreateContributionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PhilhealthContributionRule
+        fields = [
+            'salary_floor',
+            'salary_ceiling',
+            'employee_rate',
+            'employer_rate',
+        ]
+
+class PhilhealthContributionListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PhilhealthContributionRule
+        fields = [
+            'id',
+            'salary_floor',
+            'salary_ceiling',
+            'employee_rate',
+            'employer_rate',
+        ]
+
+class TaxCreateContributionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WithholdingTaxBracket
+        fields = [
+            'frequency',
+            'min_compensation',
+            'max_compensation',
+            'base_tax',
+            'percentage_over',
+            'excess_over',
+        ]
+
+class TaxContributionListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WithholdingTaxBracket
+        fields = [
+            'id',
+            'frequency',
+            'min_compensation',
+            'max_compensation',
+            'base_tax',
+            'percentage_over',
+            'excess_over',
         ]

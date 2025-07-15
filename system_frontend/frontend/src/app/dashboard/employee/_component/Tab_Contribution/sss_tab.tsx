@@ -23,19 +23,19 @@ export default function SssTab() {
     const queryClient = getQueryClient();
     
     const [inputs, setInputs] = useState({
-        compensation_from: '',
-        compensation_to: '',
-        total_credit: '',
-        employer_total: '',
-        employee_total: '',
-        overall_total: ''
+        compensation_from: 0,
+        compensation_to: 0,
+        total_credit: 0,
+        employer_total: 0,
+        employee_total: 0,
+        overall_total: 0
     });
 
-    const handleInputChange = (e: any) => {
-        const { name, value } = e.target;
+    // For InputNumber — a separate handler
+    const handleNumberChange = (name: string, value: number | null) => {
         setInputs(prev => ({
             ...prev,
-            [name]: value
+            [name]: value !== null ? value : 0 
         }));
     };
 
@@ -55,17 +55,19 @@ export default function SssTab() {
 
         console.log("Table Input", payload);
 
-         if (
-            !compensation_from.trim() ||
-            !compensation_to.trim() ||
-            !total_credit.trim() ||
-            !employee_total.trim() ||
-            !employer_total.trim() ||
-            !overall_total.trim()
-        ) {
-            setErrorMessage("All fields are required.");
-            return;
-        }
+        // const isEmpty = (value: number) => value === 0 || value === null || value === undefined;
+
+        // if (
+        //     isEmpty(compensation_from) ||
+        //     isEmpty(compensation_to) ||
+        //     isEmpty(total_credit) ||
+        //     isEmpty(employee_total) ||
+        //     isEmpty(employer_total) ||
+        //     isEmpty(overall_total)
+        // ) {
+        //     setErrorMessage("All fields are required.");
+        //     return;
+        // }
 
         try {
             const res = await axiosInstance.post(`/payroll/sss/create/`, payload);
@@ -73,22 +75,13 @@ export default function SssTab() {
 
             queryClient.invalidateQueries({ queryKey: ["sss"] });
 
-            // Optional: reset inputs after success
-            setInputs({
-                compensation_from: '',
-                compensation_to: '',
-                total_credit: '',
-                employer_total: '',
-                employee_total: '',
-                overall_total: '',
-            });
         } 
         catch (error: any) {
             if (error.response?.data?.error) {
                 alert(error.response.data.error);
             } 
             else {
-                alert("Failed to add SSS rate.");
+            setErrorMessage("Failed to create SSS rule");
             }
         }
     };
@@ -102,33 +95,74 @@ export default function SssTab() {
         {
             title: 'Minimum Salary',
             dataIndex: 'compensation_from',
-            render: (value: any, record: any) => <Input className='shadow-md' name='compensation_from' onChange={handleInputChange}/>
-            
+            render: () => <InputNumber<number>
+                defaultValue={0.00}
+                name='compensation_from'
+                style={{width: 150}}
+                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                parser={(value) => value?.replace(/\$\s?|(,*)/g, '') as unknown as number}
+                onChange={(value) => handleNumberChange('compensation_from', value)}
+                />            
         }, 
         {
             title: 'Maximum Salary',
             dataIndex: 'compensation_to',
-            render: (value: any, record: any) => <Input className='shadow-md' name='compensation_to' onChange={handleInputChange}/>
+            render: () => <InputNumber<number>
+                defaultValue={0.00}
+                name='compensation_to'
+                style={{width: 150}}
+                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                parser={(value) => value?.replace(/\$\s?|(,*)/g, '') as unknown as number}
+                onChange={(value) => handleNumberChange('compensation_to', value)}
+                />        
         },
         {
-            title: 'Monthly Salary Credit',
+            title: 'Monthly Salary Credit Total',
             dataIndex: 'total_credit',
-            render: (value: any, record: any) => <Input className='shadow-md' name='total_credit' onChange={handleInputChange}/>
+            render: () => <InputNumber<number>
+                defaultValue={0.00}
+                name='total_credit'
+                style={{width: 150}}
+                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                parser={(value) => value?.replace(/\$\s?|(,*)/g, '') as unknown as number}
+                onChange={(value) => handleNumberChange('total_credit', value)}
+                />        
         },
         {
             title: 'Employeer Total',
             dataIndex: 'employer_total',
-            render: (value: any, record: any) => <Input className='shadow-md' name='employer_total' onChange={handleInputChange}/>
+            render: () => <InputNumber<number>
+                defaultValue={0.00}
+                name='employer_total'
+                style={{width: 150}}
+                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                parser={(value) => value?.replace(/\$\s?|(,*)/g, '') as unknown as number}
+                onChange={(value) => handleNumberChange('employer_total', value)}
+                />       
         },
         {
             title: 'Employee Total',
             dataIndex: 'employee_total',
-            render: (value: any, record: any) => <Input className='shadow-md' name='employee_total' onChange={handleInputChange}/>
+            render: () => <InputNumber<number>
+                defaultValue={0.00}
+                name='employee_total'
+                style={{width: 150}}
+                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                parser={(value) => value?.replace(/\$\s?|(,*)/g, '') as unknown as number}
+                onChange={(value) => handleNumberChange('employee_total', value)}
+                />       
         },
         {
             title: 'Over all Total',
             dataIndex: 'overall_total',
-            render: (value: any, record: any) => <Input className='shadow-md' name='overall_total' onChange={handleInputChange}/>
+            render: () => <InputNumber<number>
+                defaultValue={0.00}
+                name='overall_total'
+                style={{width: 150}}
+                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                parser={(value) => value?.replace(/\$\s?|(,*)/g, '') as unknown as number}
+                onChange={(value) => handleNumberChange('overall_total', value)}
+                />       
         },
         {
             title: '',
@@ -136,7 +170,7 @@ export default function SssTab() {
             width: '50px',
             render: (_: any, record: any) => (
                 <>
-                <Button icon={<PlusOutlined/>} shape="circle" onClick={handleAdd} />
+                <Button icon={<PlusOutlined style={{color: "white"}}/>} shape="circle" onClick={handleAdd} style={{backgroundColor: "#388E3C"}} />
                 {/* <Button icon={<DeleteOutlined />} shape="circle" danger onClick={handleDelete}/> */}
                 </>
             )
@@ -147,7 +181,10 @@ export default function SssTab() {
         {
             title: 'Minimum Salary',
             dataIndex: 'compensation_from',
-            render: (_: any, record: any) => <span>{record.compensation_from}</span>
+            render: (_: any, record: any) => <span>{record.compensation_from}</span>,
+            // onCell: () => ({
+            //     className: 'border-x-2 border-blue-400',
+            // }),
         },
         {
             title: 'Maximum Salary',
@@ -157,22 +194,22 @@ export default function SssTab() {
         {
             title: 'Monthly Salary Credit',
             dataIndex: 'total_credit',
-            render: (value: any, record: any) => <span>{record.total_credit}</span>
+            render: (value: any, record: any) => <span>{record.total_credit}</span>,
         },
         {
             title: 'Employeer Total',
             dataIndex: 'employer_total',
-            render: (value: any, record: any) => <span>{record.employer_total}</span>
+            render: (value: any, record: any) => <span>{record.employer_total}</span>,
         },
         {
             title: 'Employee Total',
             dataIndex: 'employee_total',
-            render: (value: any, record: any) => <span>{record.employee_total}</span>
+            render: (value: any, record: any) => <span>{record.employee_total}</span>,
         },
         {
             title: 'Over all Total',
             dataIndex: 'overall_total',
-            render: (value: any, record: any) => <span>{record.overall_total}</span>
+            render: (value: any, record: any) => <span>{record.overall_total}</span>,
         },
         {
             title: '',
@@ -185,7 +222,7 @@ export default function SssTab() {
                     <Button icon={<DeleteOutlined />} shape="circle" danger onClick={handleDelete}/>
                 </div>
                 </>
-            )
+            ),
         }
     ];
 
@@ -220,15 +257,31 @@ export default function SssTab() {
                     style={{marginTop: 0}}
                 />
             </ConfigProvider>
-             <Table
-                size="small"
-                // showHeader={false}
-                // rowSelection={rowSelection}
-                columns={datacolumns}
-                dataSource={sss_list}
-                pagination={false}
-                className='shadow-lg'
-            />
+            <ConfigProvider
+                theme={{
+                    components: {
+                        Table: {
+                            rowHoverBg: "#6596FF",    
+                        },
+                    },
+                }}
+            >
+                <Table
+                    size="small"
+                    // showHeader={false}
+                    // rowSelection={rowSelection}
+                    rowClassName={(record, index) => `${index % 2 === 0 ? 'bg-white' : 'bg-[#fbfbfb]'} custom-hover-row`}
+                    columns={datacolumns}
+                    dataSource={sss_list}
+                    pagination={false}
+                    rowKey={(row) => row.id}
+                    scroll={{
+                        x: 'max-content',
+                        y: 400,
+                    }}
+                    className="shadow-lg no-scrollbar-table "
+                />
+            </ConfigProvider>
         </div>
     );
 }

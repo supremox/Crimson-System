@@ -1,8 +1,19 @@
 from rest_framework import generics, views, status
 from rest_framework.response import Response
 
-from .serializers import PayrollGenerateSerializer, ComputePaySerializer, SSSContributionListSerializer, SSSContributionSerializer
-from .models import SSSContribution
+from .serializers import (
+    PayrollGenerateSerializer, 
+    ComputePaySerializer,  
+    SSSContributionListSerializer, 
+    SSSCreateContributionSerializer,
+    PagibigContributionListSerializer,
+    PagibigCreateContributionSerializer,
+    PhilhealthContributionListSerializer,
+    PhilhealthCreateContributionSerializer,
+    TaxContributionListSerializer,
+    TaxCreateContributionSerializer
+)
+from .models import SSSContribution, PagIbigContributionRule, PhilhealthContributionRule, WithholdingTaxBracket
 
 from attendance.models import Attendance
 from attendance.serializers import AttendanceSerializer 
@@ -13,13 +24,91 @@ from payroll.utils import PayCalculator
 from typing import TypedDict
 import datetime as dt
 
+# =====================  SSS Views ========================= 
+
 class SSSContributionCreateView(generics.CreateAPIView):
     queryset = SSSContribution.objects.all()
-    serializer_class = SSSContributionSerializer
+    serializer_class = SSSCreateContributionSerializer
+
+    def create(self, request, *args, **kwargs):
+        print("Incoming SSS Contribution Data:", request.data)
+
+        # Proceed with default behavior (validation + saving)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
+        # headers = self.get_success_headers(serializer.data)
+        return Response(status=status.HTTP_201_CREATED)
 
 class SSSContributionListView(generics.ListAPIView):
     queryset = SSSContribution.objects.all()
     serializer_class = SSSContributionListSerializer
+
+# =====================  Pagibig Views ========================= 
+
+class PagibigContributionListView(generics.ListAPIView):
+    queryset = PagIbigContributionRule.objects.all()
+    serializer_class = PagibigContributionListSerializer
+
+class PagibigContributionCreateView(generics.CreateAPIView):
+    queryset = PagIbigContributionRule.objects.all()
+    serializer_class = PagibigCreateContributionSerializer
+
+    def create(self, request, *args, **kwargs):
+        print("Incoming Pagibig Contribution Data:", request.data)
+
+        # Proceed with default behavior (validation + saving)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
+        # headers = self.get_success_headers(serializer.data)
+        return Response(status=status.HTTP_201_CREATED)
+    
+# =====================  Philhealth Views ========================= 
+
+class PhilhealthContributionListView(generics.ListAPIView):
+    queryset = PhilhealthContributionRule.objects.all()
+    serializer_class = PhilhealthContributionListSerializer
+
+class PhilhealthContributionCreateView(generics.CreateAPIView):
+    queryset = PhilhealthContributionRule.objects.all()
+    serializer_class = PhilhealthCreateContributionSerializer
+
+    def create(self, request, *args, **kwargs):
+        print("Incoming Philhealth Contribution Data:", request.data)
+
+        # Proceed with default behavior (validation + saving)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
+        # headers = self.get_success_headers(serializer.data)
+        return Response(status=status.HTTP_201_CREATED)
+    
+# =====================  Bir Tax Views ========================= 
+
+class TaxContributionListView(generics.ListAPIView):
+    queryset = WithholdingTaxBracket.objects.all()
+    serializer_class = TaxContributionListSerializer
+
+class TaxContributionCreateView(generics.CreateAPIView):
+    queryset = WithholdingTaxBracket.objects.all()
+    serializer_class = TaxCreateContributionSerializer
+
+    def create(self, request, *args, **kwargs):
+        print("Incoming Bir Tax Contribution Data:", request.data)
+
+        # Proceed with default behavior (validation + saving)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
+        # headers = self.get_success_headers(serializer.data)
+        return Response(status=status.HTTP_201_CREATED)
+    
+# =====================  Payroll Generation Views ========================= 
 
 class PayrollGenerateAPIView(views.APIView):
     def post(self, request, *args, **kwargs):
@@ -43,6 +132,12 @@ class PayrollGenerateAPIView(views.APIView):
                 status=status.HTTP_404_NOT_FOUND)
 
         serializer = AttendanceSerializer(attendances, many=True)
+
+        sss = 0
+        pagibig = 0
+        philhealth = 0
+        tax = 0
+
         employees = {}
         for record in serializer.data:
             emp_id = record['employee_id']
@@ -81,6 +176,9 @@ class PayrollGenerateAPIView(views.APIView):
                 'pay_details': pay_result,  
             })
 
+            sss = self.compute_sss_contribution(employee.salary)
+
+        print(f"SSS Deduction: {sss}")
         pay_summary = self.process_earnings(employees)
         print(pay_summary)
         return  Response(status=status.HTTP_200_OK)      
@@ -143,10 +241,11 @@ class PayrollGenerateAPIView(views.APIView):
         return results
     
     @staticmethod
-    def process_monthly_contribution(data):
-        total_pay = []
+    def compute_sss_contribution(salary):
+        sss_contribution_rule = SSSContribution.objects.all()
+        sss_contribution = 0
 
-        return total_pay
+        return sss_contribution
     
     @staticmethod
     def compute_pagibig_contribution(self, salary):

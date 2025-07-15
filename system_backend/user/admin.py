@@ -4,6 +4,7 @@ from .models import CustomUser
 from employee.models import Employee, EmployeeYearlySchedule, Shift, TotalLeave
 from calendar_event.models import CalendarEvent , Leave, ShiftChangeRequest, Overtime
 from attendance.models import Attendance
+from payroll.models import SSSContribution, PagIbigContributionRule, PhilhealthContributionRule, WithholdingTaxBracket
 
 class EmployeeYearlyScheduleInline(admin.TabularInline):
     model = EmployeeYearlySchedule
@@ -33,4 +34,8 @@ admin.site.register(Shift)
 admin.site.register(Attendance)
 admin.site.register(Overtime)
 admin.site.register(TotalLeave)
+admin.site.register(WithholdingTaxBracket)
+admin.site.register(SSSContribution)
+admin.site.register(PagIbigContributionRule)
+admin.site.register(PhilhealthContributionRule)
 

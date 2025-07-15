@@ -11,8 +11,32 @@ const useGetSSS = () => {
   });
 }
 
+const useGetPagIbig = () => {
+    return useQuery({
+    queryKey: ["pagibig"],
+    queryFn: () => fetcher("/payroll/pagibig/all/")
+  });
+}
+
+const useGetPhilhealth = () => {
+    return useQuery({
+    queryKey: ["philhealth"],
+    queryFn: () => fetcher("/payroll/philhealth/all/")
+  });
+}
+
+const useGetBir = () => {
+    return useQuery({
+    queryKey: ["bir"],
+    queryFn: () => fetcher("/payroll/bir/all/")
+  });
+}
+
 export const GetPayrollRecord = () => {
     return {
-        useGetSSS
+        useGetSSS,
+        useGetPagIbig,
+        useGetPhilhealth,
+        useGetBir
     }
 }
