@@ -1,11 +1,14 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import CustomUser
+from .models import CustomUser, CustomPermission
 from django.apps import apps
 
 class CustomUserSerializer(serializers.ModelSerializer):
     employee_id = serializers.SerializerMethodField()
     position = serializers.SerializerMethodField()
+    company = serializers.SerializerMethodField()
+    role = serializers.SerializerMethodField()
+    custom_permissions = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
@@ -15,8 +18,31 @@ class CustomUserSerializer(serializers.ModelSerializer):
             'middle_name', 
             'suffix', 
             'email', 
+            'company',
+            'role',
+            'custom_permissions',
             'employee_id', 
             'position'
+        ]
+
+    def get_company(self, obj):
+        return obj.company.company_name if obj.company else None
+
+    def get_role(self, obj):
+        return [role.name for role in obj.roles.all()]
+
+    def get_custom_permissions(self, obj):
+        # Direct permissions
+        direct_perms = obj.custom_permissions.all()
+        # Permissions from roles
+        role_perms = CustomPermission.objects.filter(roles__users=obj)
+        # Combine and deduplicate
+        all_perms = (direct_perms | role_perms).distinct()
+        return [
+            {
+                "code": perm.code,
+            }
+            for perm in all_perms
         ]
 
     def get_employee_model(self):

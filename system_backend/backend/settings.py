@@ -47,18 +47,20 @@ INSTALLED_APPS = [
 
     # Apps
     'user',
+    'company',
     'employee',
     'calendar_event',
     'attendance',
     'payroll',
 
-    # installed apps
+    # installed apps resources
     'rest_framework',
     'djoser',
     'corsheaders',
     'rest_framework_simplejwt.token_blacklist',
     'drf_yasg',
     'django_celery_beat',
+    'mptt',
   
 ]
 

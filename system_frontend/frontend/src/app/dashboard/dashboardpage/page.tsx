@@ -101,7 +101,7 @@ export default function Dashboard() {
 
       {/* Welcome Section */}
       <div className="col-span-full rounded-lg shadow-xl p-5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
-        <Title level={3} className="text-white !mb-0">Welcome, {user?.first_name}! </Title>
+        <h1 className="text-white !mb-0">{user?.company}</h1>
         <p className="text-blue-100 text-sm mt-1">Your dashboard at a glance.</p>
       </div>
 

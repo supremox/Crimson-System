@@ -12,9 +12,13 @@ from .serializers import (
     EmployeeUserSerializer
 )
 
+from user.permissions import HasCustomPermission
+
 class EmployeeListCreateView(generics.ListCreateAPIView):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
+    permission_classes = [HasCustomPermission]
+    permission_classes[0].required_permissions = ['can_create_employee']
 
     def get(self, request, *args, **kwargs):
         employees = self.get_queryset().select_related('user', 'department', 'position')
@@ -34,7 +38,7 @@ class EmployeeListCreateView(generics.ListCreateAPIView):
         return Response(data, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.get_serializer(data=request.data, context={'request': request})
         print(f"Data From Front-end: {request.data}")
         if  serializer.is_valid():
             print("Data Valid!")

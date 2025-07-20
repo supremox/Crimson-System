@@ -95,11 +95,13 @@ class EmployeeUserSerializer(serializers.ModelSerializer):
         ]
 
 class EmployeeSerializer(serializers.ModelSerializer):
+
     first_name = serializers.CharField(source='user.first_name')
     last_name = serializers.CharField(source='user.last_name')
     middle_name = serializers.CharField(source='user.middle_name', required=False, allow_blank=True)
     suffix = serializers.CharField(source='user.suffix', required=False, allow_blank=True)
     email = serializers.EmailField(source='user.email')
+    company_name = serializers.SerializerMethodField(read_only=True) 
     
     incentives_id = serializers.PrimaryKeyRelatedField(queryset=Incentive.objects.all(), write_only=True, source='incentives', many=True, required=False)
     
@@ -160,6 +162,9 @@ class EmployeeSerializer(serializers.ModelSerializer):
             'career_status'
         ]
 
+    def get_company_name(self, obj):
+        return obj.user.company.company_name if obj.user and obj.user.company else None
+
     def get_yearly_schedule(self, obj):
         year = date.today().year
         work_days = list(obj.work_days.values_list('day', flat=True))
@@ -171,7 +176,18 @@ class EmployeeSerializer(serializers.ModelSerializer):
         return yearly
 
     def create(self, validated_data):
-        print(f"Validated_Data: {validated_data}")
+        # print(f"Validated_Data: {validated_data}")
+        request = self.context.get('request')  # Get request from context
+        if not request or not request.user:
+            raise serializers.ValidationError("Request user is required to assign company.")
+
+        # Get company from logged-in user
+        company = request.user.company
+
+        # Ensure the user's company is not the super company
+        if company.is_super_company:
+            raise serializers.ValidationError("Cannot create employees under the super company.")
+        
         user_pop = validated_data.pop('user')     
         user_data = {
             "first_name" : user_pop.pop('first_name'),
@@ -179,6 +195,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
             "middle_name": user_pop.pop('middle_name', ""), 
             "suffix"     : user_pop.pop('suffix', ""), 
             "email"      : user_pop.pop('email'), 
+            "company"    : company
 
         }
         working_day_codes = validated_data.pop('work_days', [])
