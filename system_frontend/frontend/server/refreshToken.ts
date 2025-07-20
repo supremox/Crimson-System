@@ -4,7 +4,7 @@ import { setToken } from "./setToken";
 
 export async function refreshToken() {
   const refresh = await getRefresh();
-  const response = await axios.post("http://localhost:8000/api/token/refresh/", {
+  const response = await axios.post("http://localhost:8000/auth/token/refresh/", {
     refresh,
   });
   const { access } = response.data;

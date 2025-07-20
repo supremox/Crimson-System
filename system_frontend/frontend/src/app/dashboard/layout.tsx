@@ -22,6 +22,8 @@ import {
   Card,
   MenuProps,
   Dropdown,
+  Popover,
+  List,
 } from "antd";
 
 import {
@@ -96,14 +98,36 @@ export default function Home({
     mutationFn: () => axiosInstance.post("/auth/logout/"),
   });
 
-  const profileMenu = {
-    items: profileMenuItems,
-    onClick: () => {
+  
+  const handleProfileClick = (key: string) => {
+    if (key === "4") {
       removeToken("accessToken");
       removeToken("refreshToken");
       router.push("/");
-    },
+    } else {
+      console.log("Clicked:", key);
+      // You can handle other keys here
+    }
   };
+
+  const popoverContent = (
+    <List
+      size="small"
+      dataSource={profileMenuItems}
+      renderItem={(item) =>
+        item.type === "divider" ? (
+          <hr />
+        ) : (
+          <List.Item onClick={() => handleProfileClick(item.key)}>
+            <div className="flex items-center gap-2 cursor-pointer hover:text-blue-500">
+              {item.icon}
+              <span className={item.danger ? "text-red-500" : ""}>{item.label}</span>
+            </div>
+          </List.Item>
+        )
+      }
+    />
+  );
 
   return (
       <Layout style={{ minHeight: "100vh" }}>
@@ -113,14 +137,8 @@ export default function Home({
           onCollapse={setCollapsed}
           theme="dark"
         >
-          <Dropdown
-            menu={profileMenu}
-            trigger={["click"]}
-            placement="bottomRight"
-            overlayStyle={{ marginLeft: "10px" }}
-            arrow
-          >
-            <div style={{ padding: 16, textAlign: "center" }}>
+          <Popover placement="rightBottom" title="User Menu" content={popoverContent} trigger="click">
+            <div style={{ padding: 16, textAlign: "center", cursor: "pointer" }}>
               <Avatar
                 size={collapsed ? 40 : 64}
                 src="/img/ppic.png"
@@ -135,7 +153,8 @@ export default function Home({
                 </div>
               )}
             </div>
-          </Dropdown>
+          </Popover>
+
           <Menu
             theme="dark"
             defaultSelectedKeys={["1"]}
