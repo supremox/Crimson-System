@@ -26,3 +26,15 @@ class Company(MPTTModel):
 
     def __str__(self):
         return self.company_name
+    
+
+class Stamping(models.Model):
+    stamping_image = models.ImageField(upload_to='stamping_images/')
+
+    def __str__(self):
+        return str(self.stamping_image)
+    
+class DocumentProcessing(models.Model):
+    document = models.FilePathField()
+
+    

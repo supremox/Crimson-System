@@ -12,7 +12,7 @@ from employee.models import Employee, EmployeeYearlySchedule, Shift, TotalLeave
 from calendar_event.models import CalendarEvent , Leave, ShiftChangeRequest, Overtime
 from attendance.models import Attendance
 from payroll.models import SSSContribution, PagIbigContributionRule, PhilhealthContributionRule, WithholdingTaxBracket
-from company.models import Company
+from company.models import Company, Stamping
 
 @admin.register(CustomPermission)
 class CustomPermissionAdmin(admin.ModelAdmin):
@@ -152,6 +152,7 @@ class CompanyAdmin(DraggableMPTTAdmin):
     view_employees_link.short_description = 'Employees'
 
 # Register your models here.
+admin.site.register(Stamping)
 admin.site.register(CalendarEvent)
 admin.site.register(Leave)
 admin.site.register(ShiftChangeRequest)

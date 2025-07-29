@@ -36,6 +36,7 @@ import {
   LogoutOutlined,
   HomeOutlined,
 } from "@ant-design/icons";
+import { StampIcon } from "lucide-react";
 
 const { Sider, Content, Footer } = Layout;
 const { Title, Paragraph } = Typography;
@@ -68,6 +69,7 @@ const items: MenuItem[] = [
   ]),
   getItem(<Link href={"/dashboard/payroll"}>Payroll</Link>, "8", <WalletOutlined />),
   getItem(<Link href={"/dashboard/employee"}>Management</Link>,"9",<UserOutlined />),
+  getItem(<Link href={"/dashboard/stamping"}>Stamping</Link>,"10",<StampIcon />),
 ];
 
 const profileMenuItems = [

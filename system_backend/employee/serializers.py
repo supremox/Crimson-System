@@ -139,6 +139,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
         model = Employee
         fields = [
             'id', 
+            'company_name',
             'first_name', 'last_name', 'middle_name', 'suffix', 'email',
             'employee_id', 
             'date_of_birth', 
