@@ -11,6 +11,13 @@ const useGetEmployeeUser = () => {
   });
 }
 
+const useGetUsers = () => {
+    return useQuery({
+    queryKey: ["accounts"],
+    queryFn: () => fetcher("/auth/userv2/all/"),
+  });
+}
+
 const useGetEmployees = () => {
     return useQuery({
     queryKey: ["employees"],
@@ -79,6 +86,7 @@ export const GetEmployeesRecord = () => {
         useGetLeaves,
         useGetIncentives,
         useGetEmployeeDetail,
-        useGetEmployeeUser
+        useGetEmployeeUser,
+        useGetUsers
     }
 }

@@ -1,6 +1,7 @@
 from django.db import models
 from employee.models import Employee
 from attendance.models import Attendance
+from company.models import Company
 
 # Create your models here.
 class PayrollGenerate(models.Model):
@@ -44,6 +45,7 @@ class ComputePay(models.Model):
     total_deduction = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
 class SSSContribution(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
     compensation_from = models.DecimalField(max_digits=10, decimal_places=2)
     compensation_to = models.DecimalField(max_digits=10, decimal_places=2)
 
@@ -76,6 +78,7 @@ class SSSContribution(models.Model):
     
     
 class PagIbigContributionRule(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
     min_salary = models.DecimalField(max_digits=10, decimal_places=2)  # inclusive
     max_salary = models.DecimalField(max_digits=10, decimal_places=2)  # inclusive
     employee_rate = models.DecimalField(max_digits=4, decimal_places=2)
@@ -85,6 +88,7 @@ class PagIbigContributionRule(models.Model):
         return f"{self.min_salary} - {self.max_salary}: E {self.employee_rate}%, ER {self.employer_rate}%"
     
 class PhilhealthContributionRule(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
     employee_rate = models.DecimalField(max_digits=4, decimal_places=3)
     employer_rate = models.DecimalField(max_digits=4, decimal_places=3)
     premium_rate = models.DecimalField(
@@ -111,6 +115,7 @@ class WithholdingTaxBracket(models.Model):
         ('monthly', 'Monthly'),
     ]
 
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
     frequency = models.CharField(max_length=15, choices=FREQUENCY_CHOICES)
     min_compensation = models.DecimalField(max_digits=12, decimal_places=2)
     max_compensation = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)  # Null if no upper limit

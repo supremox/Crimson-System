@@ -85,7 +85,7 @@ export default function DepartmentPositionList() {
 
     const { mutate: mutate_department } = useMutation({
         mutationFn: async (data: DepartmentFieldType) => {
-        return await axiosInstance.post("/employee/departments/names/", data);
+        return await axiosInstance.post("/employee/departments/create/", data);
         },
     });
 

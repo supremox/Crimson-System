@@ -10,9 +10,23 @@ interface DayAttendanceProps {
 
 export default function DayAttendance({ emp_id, day, children }: DayAttendanceProps) {
     const { useGetDayRecord } = GetAttendanceRecord();
-    const { data: attendance, isLoading } = useGetDayRecord(day, emp_id);
 
-    const content = (
+    const [visible, setVisible] = React.useState(false);
+
+    const { data: attendance, isLoading, refetch } = useGetDayRecord(day, emp_id, {
+        enabled: false, // don't fetch until triggered
+    });
+
+    const handleVisibleChange = (newVisible: boolean) => {
+        setVisible(newVisible);
+        if (newVisible) {
+        refetch(); // fetch only on click
+        }
+    };
+
+    const content = isLoading ? (
+        <Spin />
+    ) : (
         <div className='flex flex-col'>
             <div className="flex flex-col border-b-3 border-indigo-500">
                 <span className="text-gray-500 text-xs">Employee</span>
@@ -53,7 +67,7 @@ export default function DayAttendance({ emp_id, day, children }: DayAttendancePr
 
     return (
         <ConfigProvider>
-            <Popover placement="bottom" title="Attendance Info" content={content} trigger="click">{children}</Popover>
+            <Popover placement="bottom" title="Attendance Info" content={content} trigger="click" open={visible} onOpenChange={handleVisibleChange}>{children}</Popover>
         </ConfigProvider>
     );
 }

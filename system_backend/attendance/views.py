@@ -27,13 +27,21 @@ class AttendanceAPIView(generics.ListAPIView):
     serializer_class = AttendanceSerializer
 
     def get_queryset(self):
-        # Get the latest 15 distinct attendance dates that have logs
+        user_company = self.request.user.company
+        if not user_company:
+            return Attendance.objects.none()  # Or raise PermissionDenied
+
+        # Get latest 15 distinct attendance dates
         recent_dates = (
             Attendance.objects.order_by("-date")
             .values_list("date", flat=True)
             .distinct()[:15]
         )
-        return Attendance.objects.select_related("employee__user").filter(date__in=recent_dates)
+
+        return Attendance.objects.select_related("employee__user").filter(
+            date__in=recent_dates,
+            employee__user__company=user_company
+        )
 
     def get(self, request, format=None):
         attendances = self.get_queryset()
@@ -56,7 +64,54 @@ class AttendanceAPIView(generics.ListAPIView):
                 'status': record['status'],
             })
         return Response(list(employees.values()), status=status.HTTP_200_OK)
-    
+
+class AttendanceUserAPIView(generics.ListAPIView): 
+    serializer_class = AttendanceSerializer
+
+    def get_queryset(self):
+        user = self.request.user  # Get the logged-in user
+        if not user.is_authenticated:
+            return Attendance.objects.none()
+
+        # Get the latest 15 attendance dates for this user's employee
+        recent_dates = (
+            Attendance.objects.filter(employee__user=user)
+            .order_by("-date")
+            .values_list("date", flat=True)
+            .distinct()[:15]
+        )
+        return Attendance.objects.select_related("employee__user").filter(
+            employee__user=user,
+            date__in=recent_dates
+        )
+
+    def get(self, request, format=None):
+        attendances = self.get_queryset()
+        serializer = self.get_serializer(attendances, many=True, context={'request': request})
+        
+        # Format the result for only this user
+        user = request.user
+        if not attendances:
+            return Response([], status=status.HTTP_200_OK)
+        
+        record = serializer.data[0]  # Assuming all records are for the same user
+        response_data = {
+            'employee_id': record['employee_id'],
+            'employee_name': record['employee_name'],
+            'avatar': record['avatar'],
+            'attendance': []
+        }
+
+        for record in serializer.data:
+            response_data['attendance'].append({
+                'date': record['date'],
+                'time_in': record['time_in'],
+                'time_out': record['time_out'],
+                'status': record['status'],
+            })
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
 
 class AttendanceRetrieveAPIView(views.APIView):
     def get(self, request, employee_id, date, *args, **kwargs):
@@ -73,6 +128,56 @@ class AttendanceRetrieveAPIView(views.APIView):
 
         serializer = AttendanceSerializer(attendance)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class AttendanceUserfilterRetrieveAPIView(views.APIView):
+    permission_classes = [IsAuthenticated]  # Ensure only logged-in users can access
+
+    def post(self, request, *args, **kwargs):
+        start_date = request.data.get("start_date")
+        end_date = request.data.get("end_date")
+        print(f"Start date: {start_date}  End Date: {end_date}")
+
+        if not start_date or not end_date:
+            return Response(
+                {"error": "start_date and end_date are required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user = request.user
+
+        attendances = Attendance.objects.select_related('employee__user').filter(
+            employee__user=user,
+            date__gte=start_date,
+            date__lte=end_date
+        )
+
+        if not attendances.exists():
+            return Response(
+                {"error": "No attendance records found for the given date range."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = AttendanceSerializer(attendances, many=True)
+
+        # Construct response for single user
+        first_record = serializer.data[0]
+        user_attendance = {
+            'employee_id': first_record['employee_id'],
+            'employee_name': first_record['employee_name'],
+            'avatar': first_record['avatar'],
+            'attendance': []
+        }
+
+        for record in serializer.data:
+            user_attendance['attendance'].append({
+                'date': record['date'],
+                'time_in': record['time_in'],
+                'time_out': record['time_out'],
+                'total_hours_worked': record['total_hours_worked'],
+                'status': record['status'],
+            })
+
+        return Response(user_attendance, status=status.HTTP_200_OK)
     
 
 class AttendancefilterRetrieveAPIView(views.APIView):

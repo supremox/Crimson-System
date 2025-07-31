@@ -3,7 +3,8 @@ from . import views
 
 urlpatterns = [
     path('event/', views.CalendarEventListCreateView.as_view()),
-    path('leave/all/', views.LeaveListView.as_view()),
+    path('leave/user/', views.LeaveUserListView.as_view()),
+    path('leave/all/', views.LeaveAllEmployeeListView.as_view()),
     path('leave/detail/<int:pk>/', views.LeaveDetailedListView.as_view()),
     path('leave/update/<int:pk>/', views.LeaveUpdateListView.as_view()),
     path('leave/create/', views.LeaveCreateView.as_view()),

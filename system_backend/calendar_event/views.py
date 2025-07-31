@@ -1,11 +1,20 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+
 from .models import CalendarEvent, Leave, ShiftChangeRequest
 from .serializers import CalendarEventSerializer, LeaveListSerializer, LeaveStatusUpdateSerializer, LeaveSerializer, ShiftChangeListSerializer, ShiftChangeRequestSerializer
 
 class CalendarEventListCreateView(generics.ListCreateAPIView):
-    queryset = CalendarEvent.objects.all()
     serializer_class = CalendarEventSerializer
+
+    def get_queryset(self):
+        company = self.request.user.company
+        return CalendarEvent.objects.filter(company=company)
+    
+    def perform_create(self, serializer):
+        company = self.request.user.company
+        serializer.save(company=company)
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -22,10 +31,20 @@ class CalendarEventListCreateView(generics.ListCreateAPIView):
             "errors": serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
     
-class LeaveListView(generics.ListAPIView):
-    queryset = Leave.objects.all()
+class LeaveUserListView(generics.ListAPIView):
     serializer_class = LeaveListSerializer
+    permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        return Leave.objects.filter(employee__user=self.request.user)
+    
+class LeaveAllEmployeeListView(generics.ListAPIView):
+    serializer_class = LeaveListSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user_company = self.request.user.company
+        return Leave.objects.filter(employee__user__company=user_company)
 
 class LeaveDetailedListView(generics.RetrieveAPIView):
     queryset = Leave.objects.all()
@@ -64,8 +83,17 @@ class LeaveCreateView(generics.CreateAPIView):
         }, status=status.HTTP_400_BAD_REQUEST)
     
 class ShiftChangeListView(generics.ListAPIView):
-    queryset = ShiftChangeRequest.objects.all()
     serializer_class = ShiftChangeListSerializer
+  
+    def get_queryset(self):
+        user_company = self.request.user.company
+        return ShiftChangeRequest.objects.filter(employee__user__company=user_company)
+
+class ShiftChangeUserListView(generics.ListAPIView):
+    serializer_class = ShiftChangeListSerializer
+
+    def get_queryset(self):
+        return Leave.objects.filter(employee__user=self.request.user)
 
 class ShiftChangeDetailedListView(generics.RetrieveAPIView):
     queryset = ShiftChangeRequest.objects.all()

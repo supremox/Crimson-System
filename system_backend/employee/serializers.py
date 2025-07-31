@@ -26,13 +26,18 @@ class UserSerializer(serializers.ModelSerializer):
 class ShiftSerializer(serializers.ModelSerializer):
     class Meta:
         model = Shift
-        fields = '__all__'
+        fields = ['id', 'shift_name', 'start_time', 'end_time', 'break_start', 'break_end']
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Department
-        fields = '__all__'
+        fields = ['id', 'department_name'] 
+
+class DepartmentCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Department
+        fields = ['department_name', 'company'] 
 
 
 class PositionSerializer(serializers.ModelSerializer):
@@ -69,6 +74,27 @@ class TotalLeaveSerializer(serializers.ModelSerializer):
 
     def get_total_leave(self, obj):
         return obj.total_leave
+    
+class LeaveCreateSerializer(serializers.ModelSerializer):
+    total_leave = serializers.SerializerMethodField()
+
+    class Meta:
+        model = TotalLeave
+        fields = ['id', 'vacation_leave', 'sick_leave', 'total_leave']
+
+    def get_total_leave(self, obj):
+        return obj.total_leave
+
+    def validate(self, data):
+        company = self.context['request'].user.company
+        if TotalLeave.objects.filter(company=company).exists():
+            raise serializers.ValidationError("TotalLeave already exists for this company.")
+        return data
+
+    def create(self, validated_data):
+        company = self.context['request'].user.company
+        return TotalLeave.objects.create(company=company, **validated_data)
+
     
 
 class WorkingDaySerializer(serializers.ModelSerializer):

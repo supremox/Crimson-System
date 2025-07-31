@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from company.models import Company
 
 User = get_user_model()
 
@@ -9,12 +10,14 @@ class Shift(models.Model):
     end_time = models.TimeField()
     break_start = models.TimeField()
     break_end = models.TimeField()
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='shift')
 
     def __str__(self):
         return self.shift_name
         
 class Department(models.Model):
     department_name = models.CharField(max_length=100,  unique=True)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='departments')
 
     def __str__(self):
         return self.department_name
@@ -22,14 +25,15 @@ class Department(models.Model):
 class Position(models.Model):
     position_name = models.CharField(max_length=100)
     department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='positions')
-
+ 
     def __str__(self):
         return self.position_name
     
 class Incentive(models.Model):
     incentive_name = models.CharField(max_length=100)
     incentive_amount = models.CharField(max_length=100)
-
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='incentive')
+    
     def __str__(self):
         return self.incentive_name
     
@@ -104,13 +108,13 @@ class EmployeeYearlySchedule(models.Model):
         ordering = ['date']
     
 class TotalLeave(models.Model):
-    employee = models.OneToOneField(Employee, on_delete=models.CASCADE, related_name='total_leave', null=True)
+    company = models.OneToOneField(Company, on_delete=models.CASCADE, related_name='total_leave')
     vacation_leave = models.IntegerField(default=10)
     sick_leave = models.IntegerField(default=10)
-    
+
     @property
     def total_leave(self):
         return self.vacation_leave + self.sick_leave
 
     def __str__(self):
-        return str(self.total_leave)
+        return f"{self.company.company_name} - Leave"

@@ -8,7 +8,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from django.core.exceptions import ObjectDoesNotExist
 
-from .serializer import CustomTokenObtainPairSerializer, CustomUserSerializer
+from .serializer import CustomTokenObtainPairSerializer, CustomUserSerializer, CustomAllUserSerializer
+from .models import CustomUser
 from employee.serializers import EmployeeUserSerializer
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -67,3 +68,17 @@ class UserMeView(APIView):
     def get(self, request):
         serializer = CustomUserSerializer(request.user)
         return Response(serializer.data)
+
+class AllUsersView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+
+        if not user.company:
+            return Response({"error": "User is not associated with any company."}, status=status.HTTP_403_FORBIDDEN)
+
+        users = CustomUser.objects.filter(company=user.company)
+        serializer = CustomAllUserSerializer(users, many=True)
+        return Response(serializer.data)
+    

@@ -28,37 +28,44 @@ import datetime as dt
 # =====================  SSS Views ========================= 
 
 class SSSContributionCreateView(generics.CreateAPIView):
-    queryset = SSSContribution.objects.all()
     serializer_class = SSSCreateContributionSerializer
+
+    def perform_create(self, serializer):
+        company = self.request.user.company
+        serializer.save(company=company)
 
     def create(self, request, *args, **kwargs):
         print("Incoming SSS Contribution Data:", request.data)
-
-        # Proceed with default behavior (validation + saving)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-
-        # headers = self.get_success_headers(serializer.data)
-        return Response(status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class SSSContributionListView(generics.ListAPIView):
-    queryset = SSSContribution.objects.all()
     serializer_class = SSSContributionListSerializer
+
+    def get_queryset(self):
+        company = self.request.user.company
+        return SSSContribution.objects.filter(company=company)
 
 # =====================  Pagibig Views ========================= 
 
 class PagibigContributionListView(generics.ListAPIView):
-    queryset = PagIbigContributionRule.objects.all()
     serializer_class = PagibigContributionListSerializer
 
+    def get_queryset(self):
+        company = self.request.user.company
+        return PagIbigContributionRule.objects.filter(company=company)
+
 class PagibigContributionCreateView(generics.CreateAPIView):
-    queryset = PagIbigContributionRule.objects.all()
     serializer_class = PagibigCreateContributionSerializer
 
+    def perform_create(self, serializer):
+        company = self.request.user.company
+        serializer.save(company=company)
+   
     def create(self, request, *args, **kwargs):
         print("Incoming Pagibig Contribution Data:", request.data)
-
         # Proceed with default behavior (validation + saving)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -70,12 +77,18 @@ class PagibigContributionCreateView(generics.CreateAPIView):
 # =====================  Philhealth Views ========================= 
 
 class PhilhealthContributionListView(generics.ListAPIView):
-    queryset = PhilhealthContributionRule.objects.all()
     serializer_class = PhilhealthContributionListSerializer
 
+    def get_queryset(self):
+        company = self.request.user.company
+        return PhilhealthContributionRule.objects.filter(company=company)
+
 class PhilhealthContributionCreateView(generics.CreateAPIView):
-    queryset = PhilhealthContributionRule.objects.all()
     serializer_class = PhilhealthCreateContributionSerializer
+
+    def perform_create(self, serializer):
+        company = self.request.user.company
+        serializer.save(company=company)
 
     def create(self, request, *args, **kwargs):
         print("Incoming Philhealth Contribution Data:", request.data)
@@ -91,12 +104,18 @@ class PhilhealthContributionCreateView(generics.CreateAPIView):
 # =====================  Bir Tax Views ========================= 
 
 class TaxContributionListView(generics.ListAPIView):
-    queryset = WithholdingTaxBracket.objects.all()
     serializer_class = TaxContributionListSerializer
 
+    def get_queryset(self):
+        company = self.request.user.company
+        return WithholdingTaxBracket.objects.filter(company=company)
+
 class TaxContributionCreateView(generics.CreateAPIView):
-    queryset = WithholdingTaxBracket.objects.all()
     serializer_class = TaxCreateContributionSerializer
+
+    def perform_create(self, serializer):
+        company = self.request.user.company
+        serializer.save(company=company)
 
     def create(self, request, *args, **kwargs):
         print("Incoming Bir Tax Contribution Data:", request.data)

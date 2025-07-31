@@ -8,7 +8,7 @@ from mptt.admin import DraggableMPTTAdmin
 
 # Models of All Apps
 from .models import CustomUser, CustomPermission, Role
-from employee.models import Employee, EmployeeYearlySchedule, Shift, TotalLeave
+from employee.models import Employee, EmployeeYearlySchedule, Shift, TotalLeave, Department, Position, Incentive
 from calendar_event.models import CalendarEvent , Leave, ShiftChangeRequest, Overtime
 from attendance.models import Attendance
 from payroll.models import SSSContribution, PagIbigContributionRule, PhilhealthContributionRule, WithholdingTaxBracket
@@ -164,4 +164,6 @@ admin.site.register(WithholdingTaxBracket)
 admin.site.register(SSSContribution)
 admin.site.register(PagIbigContributionRule)
 admin.site.register(PhilhealthContributionRule)
-
+admin.site.register(Department)
+admin.site.register(Position)
+admin.site.register(Incentive)

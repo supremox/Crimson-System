@@ -18,6 +18,7 @@ import {
 } from "antd";
 import { RightOutlined, LeftOutlined, PlusOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
+import { GetEmployeesRecord } from "@/app/hooks/useGetEmployeesRecord";
 
 interface CalendarEventsModel {
   event_date: string;
@@ -37,7 +38,9 @@ type FieldType = {
 
 export default function CalendarPage() {
   const { useGetCalendarEvents } = GetCalendarEventsRecord();
+  const { useGetEmployeeUser } = GetEmployeesRecord()
 
+  const { data: user} = useGetEmployeeUser()
   const { data: calendarEvent } = useGetCalendarEvents()
 
   console.log("Calendar Event", calendarEvent)
@@ -230,13 +233,15 @@ export default function CalendarPage() {
           <div className="flex-3 bg-gray-700 rounded-lg p-8 shadow-md overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-white">Events</h2>
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => setShowModal(true)}
-              >
-                Add Event
-              </Button>
+              {user?.custom_permissions?.some((perm: any) => perm.code === "can_add_calendar_event") && (
+                 <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={() => setShowModal(true)}
+                  >
+                    Add Event
+                  </Button>
+              )}
             </div>
             <div id="event-list">
               {/* {calendarEvent?.results.length === 0 && (
