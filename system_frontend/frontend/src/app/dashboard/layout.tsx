@@ -30,7 +30,7 @@ import {
   HomeOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
-import { StampIcon } from "lucide-react";
+import { Stamp, StampIcon } from "lucide-react";
 
 const { Sider, Content } = Layout;
 const { Title, Paragraph } = Typography;
@@ -72,6 +72,7 @@ export default function Home({
       getItem(<Link href={"/dashboard/cashadvance"}>Cash Advance</Link>, "7"),
     ]),
     getItem(<Link href={"/dashboard/payroll"}>Payroll</Link>, "8", <WalletOutlined />),
+    getItem(<Link href={"/dashboard/stamping"}>Stamping</Link>, "11", <Stamp />),
   ];
 
   // Conditionally add Management item

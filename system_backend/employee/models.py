@@ -16,11 +16,16 @@ class Shift(models.Model):
         return self.shift_name
         
 class Department(models.Model):
-    department_name = models.CharField(max_length=100,  unique=True)
+    department_name = models.CharField(max_length=100)
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='departments')
 
     def __str__(self):
         return self.department_name
+    
+    class Meta:
+        unique_together = ('department_name', 'company')
+        verbose_name = 'Department'
+        verbose_name_plural = 'Departments'
     
 class Position(models.Model):
     position_name = models.CharField(max_length=100)

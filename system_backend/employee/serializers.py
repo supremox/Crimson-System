@@ -37,7 +37,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
 class DepartmentCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Department
-        fields = ['department_name', 'company'] 
+        fields = ['department_name'] 
 
 
 class PositionSerializer(serializers.ModelSerializer):
@@ -51,9 +51,11 @@ class PositionSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         print(f"Data: {validated_data}")
         dept_name = validated_data.pop('department')
+        user_company = self.context['request'].user.company
+        print(f"dept_name: {dept_name}, company: {user_company}")
 
         try:
-            department = Department.objects.get(department_name=dept_name)
+            department = Department.objects.get(department_name=dept_name, company=user_company)
         except Department.DoesNotExist:
             raise serializers.ValidationError({'department': f'Department "{dept_name}" does not exist.'})
 

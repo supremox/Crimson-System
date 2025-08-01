@@ -32,7 +32,11 @@ def OR(data):
     pdf_canvas.drawString(260, height - 155, "OFFICIAL RECEIPT")
     pdf_canvas.setFont("Helvetica-Bold", 12) 
     pdf_canvas.setFillColor(colors.red)
+
+    # ========== OR NUMBER
+    # pdf_canvas.drawRightString(width - 40, height - 155, f"No. {data["or_number"]}")
     pdf_canvas.drawRightString(width - 40, height - 155, f"No. {data["sequence"]}")
+
     pdf_canvas.setFillColor(colors.black)
 
     # === As Agent Section ===
@@ -54,11 +58,11 @@ def OR(data):
     pdf_canvas.setFont("Helvetica-Bold", 8)
     pdf_canvas.drawString(400, height - 190, "DOCUMENT NO.")
     pdf_canvas.setFont("Helvetica", 8)
-    pdf_canvas.drawString(485, height - 190, "OR#00232900")
+    pdf_canvas.drawString(485, height - 190, f"OR#{data["sequence"]}")
     pdf_canvas.setFont("Helvetica-Bold", 8)
-    pdf_canvas.drawString(400, height - 200, "OR CONTROL")
+    pdf_canvas.drawString(400, height - 200, "OR Number")
     pdf_canvas.setFont("Helvetica", 8)
-    pdf_canvas.drawString(485, height - 200, "P25-029504")
+    pdf_canvas.drawString(485, height - 200, data["sequence"])
     pdf_canvas.setFont("Helvetica-Bold", 8)
 
     # === Client Content ===
@@ -82,8 +86,6 @@ def OR(data):
     pdf_canvas.setFont("Helvetica", 8) 
     pdf_canvas.drawString(135, height - 270, data["headers"]["tin"])
 
-    pdf_canvas.drawString(270, height - 270, f"In PARTIAL/FULL PAYMENT OF PBI#0026581C (North) Freight/ Local Charge")
-
     pdf_canvas.setFont("Helvetica-Bold", 8)
     pdf_canvas.drawString(50, height - 281, "BUSINESS STYLE::")
     pdf_canvas.setFont("Helvetica", 8) 
@@ -106,28 +108,75 @@ def OR(data):
         pdf_canvas.drawString(value_x, y, line)
         y -= 12
 
+    pdf_canvas.drawString(150, y, f"In PARTIAL/FULL PAYMENT OF BI#0026581")
+    # pdf_canvas.drawString(150, y, f"In PARTIAL/FULL PAYMENT OF {data["headers"]["document_no"]}")
+
+
+    y -= 20
     # === TITLE FOR CHARGES ===
     pdf_canvas.setFont("Helvetica-Bold", 8)
-    pdf_canvas.drawString(60, height - 330, "MODE OF PAYMENT")
+    pdf_canvas.drawString(60, y, "MODE OF PAYMENT")
     pdf_canvas.setFont("Helvetica-Bold", 8)
-    pdf_canvas.drawString(160, height - 330, "PESO")
+    pdf_canvas.drawString(160, y, "PESO")
     pdf_canvas.setFont("Helvetica-Bold", 8)
-    pdf_canvas.drawString(235, height - 330, "DOLLAR")
+    pdf_canvas.drawString(235, y, "DOLLAR")
     pdf_canvas.setFont("Helvetica-Bold", 8)
-    pdf_canvas.drawString(300, height - 330, "DESCRIPTION")
+    pdf_canvas.drawString(300, y, "DESCRIPTION")
     pdf_canvas.setFont("Helvetica-Bold", 8)
-    pdf_canvas.drawString(370, height - 330, "CURR AMOUNT")
+    pdf_canvas.drawString(370, y, "CURR AMOUNT")
     pdf_canvas.setFont("Helvetica-Bold", 8)
-    pdf_canvas.drawString(450, height - 330, "CURR")
+    pdf_canvas.drawString(450, y, "CURR")
     pdf_canvas.setFont("Helvetica-Bold", 8)
-    pdf_canvas.drawString(490, height - 330, "LOCAL AMOUNT")
+    pdf_canvas.drawString(490, y, "LOCAL AMOUNT")
 
     mop = ["Cash", "Check", "Check Number", "Bank Details"]
-    y0 = height - 345
+
+    y -= 13
+
+
+    # ============= Cash ===================
+    pdf_canvas.setFont("Helvetica", 8)
+    # ====================== Peso ===========
+    pdf_canvas.drawString(160, y , str(data["total"]))
+    # ====================== Dollar =========
+    pdf_canvas.drawString(235, y , str(data["total"]))
+
+    # ============= Check ===================
+    # ====================== Peso ===========
+    pdf_canvas.drawString(160, y - 13, str(data["total"]))
+    # ====================== Dollar =========
+    pdf_canvas.drawString(235, y - 13, str(data["total"]))
+
+    # ============= Check Number ===================
+    pdf_canvas.drawString(170, y - 26, str(data["total"]))
+
+    # ============= Bank Details ===================
+    pdf_canvas.drawString(170, y - 39, str(data["total"]))
+
+
+    # ============= Over Payment ===================
+    pdf_canvas.drawString(180, height - 410, str(data["total"]))
+
+    # ============= Under Payment ===================
+    pdf_canvas.drawString(180, height - 423, str(data["total"]))
+
+    # ============= Bank/Service Charge ===================
+    pdf_canvas.drawString(180, height - 436, str(data["total"]))
+
+
+    y_charges = y
+    for charges in data["list_of_charges"]:
+        pdf_canvas.setFont("Helvetica", 8)
+        pdf_canvas.drawString(300, y_charges, str(charges["charge_code"]))
+        pdf_canvas.drawString(370, y_charges, f"{charges['amount']} {charges['currency']}")
+        pdf_canvas.drawString(450, y_charges, str(charges["currency"]))
+        pdf_canvas.drawString(490, y_charges, str(charges["amount_to_php"]))
+        y_charges -= 13  # Move down for the next charge
+
     for label in mop:
         pdf_canvas.setFont("Helvetica-Bold", 8)
-        pdf_canvas.drawString(60, y0, label)
-        y0 -= 13
+        pdf_canvas.drawString(60, y, label)
+        y -= 13
 
     excess = ["Over Payment", "Under Payment", "Bank/Service Charge"]
     y3 = height - 410
@@ -135,20 +184,7 @@ def OR(data):
         pdf_canvas.setFont("Helvetica-Bold", 8)
         pdf_canvas.drawString(60, y3, label)
         y3 -= 13
-
-    pdf_canvas.setFont("Helvetica", 8)
-    pdf_canvas.drawString(160, height - 343, str(data["total"]))
-
-    y = height - 350
-    for charges in data["list_of_charges"]:
-        pdf_canvas.setFont("Helvetica", 8)
-        pdf_canvas.drawString(300, y, str(charges["charge_code"]))
-        pdf_canvas.drawString(370, y, f"{charges['amount']} {charges['currency']}")
-        pdf_canvas.drawString(450, y, str(charges["currency"]))
-        pdf_canvas.drawString(490, y, str(charges["amount_to_php"]))
-        y -= 13  # Move down for the next charge
-
-
+    
     vat = ["NON-VAT", "VATABLE SALES", "ZERO RATED SALE", "VAT-EXEMPT SALE", "VAT 12%", "SUB TOTAL AMOUNT:"]
     y2 = height - 550
     for label in vat:
@@ -163,6 +199,7 @@ def OR(data):
     pdf_canvas.drawString(385, height - 640, "Total Amount:")
     pdf_canvas.drawString(490, height - 640, str(data["total"]))
 
+    # pdf_canvas.drawString(100, height - 640, data["assignee"])
     pdf_canvas.drawString(100, height - 640, "MARJORIE VELEZ")
    
     # === Finalize PDF ===
